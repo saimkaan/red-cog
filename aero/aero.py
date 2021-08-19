@@ -8,6 +8,6 @@ class Aero(commands.Cog):
 
     @commands.command()
     async def on_message(message):
-    if client.user.id != message.author.id:
-        if 'foo' in message.content:
-            await client.send_message(message.channel, 'bar')
+        if client.user.id != message.author.id:
+            if 'foo' in message.content:
+                await client.send_message(message.channel, 'bar')
