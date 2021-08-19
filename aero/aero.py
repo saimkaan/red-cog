@@ -6,8 +6,8 @@ class Aero(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def on_message(message):
+    @commands.Cog.listener()
+    async def on_message_without_command(self, message: discord.Message):
         if client.user.id != message.author.id:
             if 'foo' in message.content:
                 await client.send_message(message.channel, 'bar')
