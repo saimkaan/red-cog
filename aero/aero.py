@@ -8,6 +8,10 @@ class Aero(commands.Cog):
         self.bot = bot
             
     @commands.Cog.listener()
-    async def on_message_without_command(self, message):
-        print(f"{message.author.name}: {message.content}")
-        logger.debug(f"{message.author.name}: {message.content}")
+    async def on_message_without_command(self, message: discord.Message):
+        if message.author.bot:
+            return
+        if message.content.lower() == "kami":
+            async with message.channel.typing():
+                await message.reply("Hi")
+            return
