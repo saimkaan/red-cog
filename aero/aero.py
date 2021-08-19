@@ -11,15 +11,7 @@ class Aero(commands.Cog):
     async def on_message_without_command(self, message: discord.Message):
         if message.author.bot:
             return
-        if "aero" in message.content:
-            async with message.channel.typing():
-                await message.reply("Aero says fuck you, and TA is fake news")
-            return
-    @commands.Cog.listener()
-    async def on_message_without_command(self, message: discord.Message):
-        if message.author.bot:
-            return
-        if "Aero" in message.content:
+        if "Aero" in message.content.lower():
             async with message.channel.typing():
                 await message.reply("Aero says fuck you, and TA is fake news")
             return
