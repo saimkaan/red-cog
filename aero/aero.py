@@ -11,7 +11,7 @@ class Aero(commands.Cog):
     async def on_message_without_command(self, message: discord.Message):
         if message.author.bot:
             return
-        if "foo" in message.content:
+        if "foo" in message.content.lower():
             async with message.channel.typing():
                 await message.reply("bar")
             return
