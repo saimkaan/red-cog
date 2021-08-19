@@ -9,6 +9,5 @@ class Aero(commands.Cog):
             
     @commands.Cog.listener()
     async def on_message_without_command(self, message):
-        if 'foo' in message.content:
-            print(f"{message.author.name}: {message.content}")
-            logger.debug(f"{message.author.name}: {message.content}")
+        print(f"{message.author.name}: {message.content}")
+        logger.debug(f"{message.author.name}: {message.content}")
