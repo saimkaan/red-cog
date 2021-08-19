@@ -6,9 +6,17 @@ class Aero(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.event
+    @client.event
+    async def on_ready():
+        print('client ready')
+
+    @client.command()
+    async def ping():
+        await client.say('Pong')
+
+    @client.event
     async def on_message(message):
         if client.user.id != message.author.id:
-            if 'aero' in message.content:
-                await client.send_message(message.channel, 'Aero says fuck you, and TA is fake news')
+            if 'foo' in message.content:
+                await client.send_message(message.channel, 'bar')
         await client.process_commands(message)
