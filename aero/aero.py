@@ -1,4 +1,4 @@
-from discord.ext import commands
+from redbot.core import commands
 
 class Aero(commands.Cog):
     """My custom cog for Aero"""
