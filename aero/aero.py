@@ -7,7 +7,7 @@ class Aero(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def aero(self, ctx):
-        """This does stuff!"""
-        # Your code will go here
-        await ctx.send("I can do stuff!")
+    async def on_message_without_command(message):
+        if client.user.id != message.author.id:
+            if 'foo' in message.content:
+                await client.send_message(message.channel, 'bar')
