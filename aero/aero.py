@@ -1,22 +1,13 @@
-import discord
-from discord.ext import commands
+from redbot.core import commands
 
-client = commands.Bot(command_prefix='!')
+class MyCog(commands.Cog):
+    """My custom cog"""
 
-@client.event
-async def on_ready():
-    print('client ready')
+    def __init__(self, bot):
+        self.bot = bot
 
-@client.command()
-async def ping():
-    await client.say('Pong')
-
-@client.event
-async def on_message(message):
-    if client.user.id != message.author.id:
-        if 'foo' in message.content:
-            await client.send_message(message.channel, 'bar')
-
-    await client.process_commands(message)
-
-client.run('TOKEN')
+    @commands.command()
+    async def mycom(self, ctx):
+        """This does stuff!"""
+        # Your code will go here
+        await ctx.send("I can do stuff!")
