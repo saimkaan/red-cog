@@ -6,8 +6,9 @@ class Aero(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
+            
     @commands.Cog.listener()
-    async def on_message_without_command(self, message: discord.Message):
+    async def on_message_without_command(self, message):
         if 'foo' in message.content:
-            await self.send(message.channel, 'bar')
+            print(f"{message.author.name}: {message.content}")
+            logger.debug(f"{message.author.name}: {message.content}")
