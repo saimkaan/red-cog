@@ -5,7 +5,9 @@ class Aero(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
+        
+    client = commands.Bot(command_prefix='!')
+    
     @client.event
     async def on_ready():
         print('client ready')
