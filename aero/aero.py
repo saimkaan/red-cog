@@ -10,4 +10,4 @@ class Aero(commands.Cog):
     @commands.Cog.listener()
     async def on_message_without_command(self, message: discord.Message):
         if 'foo' in message.content:
-            await self.send_message(message.channel, 'bar')
+            await self.send(message.channel, 'bar')
