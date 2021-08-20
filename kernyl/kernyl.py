@@ -13,5 +13,6 @@ class Kernyl(commands.Cog):
             return
         if "kernyl" in message.content.lower():
             async with message.channel.typing():
-                await message.reply("Did you know that Kernyl is up 6% today! <:aerofarmer:877661371523793008>")
+                await message.reply("Did you know that Kernyl is up 6% today!")
+                await message.reply("<:aerofarmer:877661371523793008>")
             return
