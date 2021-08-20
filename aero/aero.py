@@ -7,7 +7,7 @@ class Aero(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
             
-    @commands.Cog.listener("Working")
+    @commands.Cog.listener()
     async def on_message_without_command(self, message: discord.Message):
         if message.author.bot:
             return
