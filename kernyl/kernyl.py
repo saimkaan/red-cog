@@ -8,7 +8,9 @@ class Kernyl(commands.Cog):
         self.bot = bot
    
     @commands.Cog.listener()
-        async def on_message(message):
+    async def on_message_without_command(self, message: discord.Message):
+        if message.author.bot:
+            return
         if message.channel.id == 951076247042146314:
             target_channel = bot.get_channel(833785942636232755)
             await target_channel.send(message.content)
