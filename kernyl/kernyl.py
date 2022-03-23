@@ -13,4 +13,4 @@ class Kernyl(commands.Cog):
             target_channel = self.bot.get_channel(956314205902999572)
             embeds= message.embeds
             for embed in embeds:
-                await target_channel.send(embed.to_dict())
+                await target_channel.send(embed = firstEmbed)
