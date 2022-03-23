@@ -12,4 +12,5 @@ class Kernyl(commands.Cog):
         if message.channel.id == 811566276039540746:
             target_channel = self.bot.get_channel(956314205902999572)
             emb = message.embeds[0]
-            await target_channel.send(emb.description)
+            await target_channel.send(emb)
+            console.log(message.embeds[0])
