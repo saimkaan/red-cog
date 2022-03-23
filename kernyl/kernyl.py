@@ -10,6 +10,5 @@ class Kernyl(commands.Cog):
     @commands.Cog.listener()
     async def on_message(message):
         if message.channel.id == 811566276039540746:
-            message.embeds.forEach(embed):
             target_channel = self.bot.get_channel(956314205902999572)
-            await target_channel.send(embed)
+            await target_channel.send(message.embeds[0].description)
