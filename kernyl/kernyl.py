@@ -8,9 +8,8 @@ class Kernyl(commands.Cog):
         self.bot = bot
    
     @commands.Cog.listener()
-    async def on_message(message):
-    await bot.process_commands(message) # add this if also using cmd decorators
-    if message.channel.id == 951076247042146314:
-        target_channel = bot.get_channel(833785942636232755)
-        await target_channel.send(message.content)
+        async def on_message(message):
+        if message.channel.id == 951076247042146314:
+            target_channel = bot.get_channel(833785942636232755)
+            await target_channel.send(message.content)
   
