@@ -11,5 +11,5 @@ class Kernyl(commands.Cog):
     async def on_message_without_command(self, message: discord.Message):
         if message.channel.id == 951076247042146314:
             target_channel = self.bot.get_channel(956314205902999572)
-            await target_channel.send(message.embeds, message.content)
-  
+            await target_channel.send(message.embeds)
+            await target_channel.send(message.content)
