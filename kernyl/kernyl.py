@@ -9,7 +9,7 @@ class Kernyl(commands.Cog):
    
     @commands.Cog.listener()
     async def on_message(message):
-        if message.channel.id == 811566276039540746:
+        if message.channel.id == 804524249464700942:
             target_channel = self.bot.get_channel(951076247042146314)
             await target_channel.send(embed=message.embeds[0].copy())
             await target_channel.send(message.content)
