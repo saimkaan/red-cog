@@ -9,7 +9,6 @@ class Kernyl(commands.Cog):
    
     @commands.Cog.listener()
     async def on_message(message: discord.Message):
-    await bot.process_commands(message) # add this if also using cmd decorators
     if message.channel.id == 804524249464700942:
         target_channel = bot.get_channel(999601740561252372)
         await target_channel.send(message.content)
