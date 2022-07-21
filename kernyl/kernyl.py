@@ -14,7 +14,7 @@ class Kernyl(commands.Cog):
         target_channel = bot.get_channel(999601740561252372)
         await target_channel.send(message.content)
     
-    
+# test   
 #    async def on_message_without_command(self, message: discord.Message):
 #        if message.author.bot:
 #            return
