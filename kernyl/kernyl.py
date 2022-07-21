@@ -15,5 +15,5 @@ class Kernyl(commands.Cog):
             target_channel = self.bot.get_channel(999601740561252372)
             await target_channel.send(message.author)
             await target_channel.send(message.content)
-            await target_channel.send("\n")
+            await target_channel.send("----------------------------")
             #await target_channel.send(embed=message.embeds[0])
