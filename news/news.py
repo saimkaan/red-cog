@@ -4,7 +4,7 @@ import requests
 
 API_URL = 'https://phx.unusualwhales.com/api/news/headlines-feed?limit=50'
 
-class News(commands.Cog):
+class HeadlinesCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.posted_headlines = set()
@@ -17,10 +17,6 @@ class News(commands.Cog):
     async def check_headlines(self):
         latest_headlines = self.get_latest_headlines()
         channel = self.bot.get_channel(833763746073280529)
-        if channel is None:
-            print(f"Invalid channel ID: {833763746073280529}")
-            return
-        
         for headline in latest_headlines:
             headline_id = headline['id']
             if headline_id not in self.posted_headlines:
@@ -52,3 +48,4 @@ class News(commands.Cog):
 
 def setup(bot):
     bot.add_cog(HeadlinesCog(bot))
+
