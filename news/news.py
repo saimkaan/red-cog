@@ -16,7 +16,7 @@ class HeadlinesCog(commands.Cog):
     @tasks.loop(seconds=5.0)
     async def check_headlines(self):
         latest_headlines = self.get_latest_headlines()
-        channel = self.bot.get_channel(YOUR_CHANNEL_ID)
+        channel = self.bot.get_channel(833763746073280529)
         for headline in latest_headlines:
             headline_id = headline['id']
             if headline_id not in self.posted_headlines:
