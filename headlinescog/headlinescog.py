@@ -46,6 +46,3 @@ class HeadlinesCog(commands.Cog):
         self.check_headlines.restart()
         await ctx.send("Restarted posting the latest headlines.")
 
-def setup(bot):
-    bot.add_cog(HeadlinesCog(bot))
-
