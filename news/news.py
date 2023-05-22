@@ -4,7 +4,7 @@ import requests
 
 API_URL = 'https://phx.unusualwhales.com/api/news/headlines-feed?limit=50'
 
-class HeadlinesCog(commands.Cog):
+class News(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.posted_headlines = set()
