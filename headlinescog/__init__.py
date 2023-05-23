@@ -1,8 +1,7 @@
-from redbot.core.bot import Red
 
 from .headlinescog import HeadlinesCog
 
 
-def setup(bot: Red):
+async def setup(bot):
     cog = HeadlinesCog(bot)
     bot.add_cog(cog)
