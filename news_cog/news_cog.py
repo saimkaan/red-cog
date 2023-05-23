@@ -27,7 +27,7 @@ class NewsCog(commands.Cog):
             new_headlines = set(data) - self.latest_headlines
             if new_headlines:
                 sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
-                channel = self.bot.get_channel(CHANNEL_ID)
+                channel = self.bot.get_channel(833763746073280529)
                 for headline, created_at, source in sorted_headlines:
                     embed = Embed(
                         title=headline,
