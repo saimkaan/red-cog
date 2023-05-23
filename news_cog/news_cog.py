@@ -1,5 +1,6 @@
-import discord
-from discord.ext import commands, tasks
+from redbot.core import commands, tasks
+from redbot.core.bot import Red
+from redbot.core import Config
 from discord import Embed
 import requests
 import datetime
@@ -12,7 +13,7 @@ headers = {
 }
 
 class NewsCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Red):
         self.bot = bot
         self.latest_headlines = set()
         self.fetch_data.start()
@@ -27,11 +28,11 @@ class NewsCog(commands.Cog):
             new_headlines = set(data) - self.latest_headlines
             if new_headlines:
                 sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
-                channel = self.bot.get_channel(833763746073280529)
+                channel = self.bot.get_channel(CHANNEL_ID)
                 for headline, created_at, source in sorted_headlines:
                     embed = Embed(
                         title=headline,
-                        color=discord.Color.red()
+                        color=await self.bot.get_embed_colour(channel)
                     )
                     embed.set_footer(text=source)
                     embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
