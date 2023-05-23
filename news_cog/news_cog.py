@@ -1,6 +1,6 @@
 from redbot.core import Config, app_commands, commands
 from redbot.core.bot import Red
-from discord.ext import tasks
+from discord.ext import tasks, Context
 from discord import Embed
 import requests
 import datetime
@@ -16,6 +16,7 @@ class NewsCog(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.latest_headlines = set()
+        self.channel_ids = []  # Store the added channel IDs
         self.fetch_data.start()
 
     def cog_unload(self):
@@ -28,7 +29,6 @@ class NewsCog(commands.Cog):
             new_headlines = set(data) - self.latest_headlines
             if new_headlines:
                 sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
-                channel = self.bot.get_channel(833763746073280529)
                 for headline, created_at, source in sorted_headlines:
                     embed = Embed(
                         title=headline,
@@ -36,7 +36,10 @@ class NewsCog(commands.Cog):
                     )
                     embed.set_footer(text=source)
                     embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
-                    await channel.send(embed=embed)
+                    for channel_id in self.channel_ids:
+                        channel = self.bot.get_channel(channel_id)
+                        if channel:
+                            await channel.send(embed=embed)
                 self.latest_headlines.update(new_headlines)
 
     def _get_data(self):
@@ -58,3 +61,16 @@ class NewsCog(commands.Cog):
         except requests.RequestException as e:
             print(f'Failed to fetch data: {e}')
         return []
+    
+    @commands.command()
+    async def add_channel(self, ctx: Context, channel: discord.TextChannel):
+        if channel.id in self.channel_ids:
+            await ctx.send("This channel is already added.")
+        else:
+            self.channel_ids.append(channel.id)
+            await ctx.send(f"Channel {channel.mention} has been added.")
+
+    @add_channel.error
+    async def add_channel_error(self, ctx: Context, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send("Invalid channel. Please mention a valid text channel.")
