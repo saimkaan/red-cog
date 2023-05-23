@@ -58,7 +58,3 @@ class NewsCog(commands.Cog):
         except requests.RequestException as e:
             print(f'Failed to fetch data: {e}')
         return []
-
-    @commands.command()
-    async def ping(self, ctx):
-        await ctx.send("Pong!")
