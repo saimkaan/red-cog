@@ -65,7 +65,7 @@ class NewsCog(commands.Cog):
                         headline['headline'],
                         headline['created_at'],
                         headline.get('source', "N/A"),
-                        headline['tickers', ""],
+                        headline['tickers', [],
                     )
                     for headline in json_data['data']
                     if headline.get('source', "N/A") == "tradex"
