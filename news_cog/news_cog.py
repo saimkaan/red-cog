@@ -36,7 +36,7 @@ class NewsCog(commands.Cog):
                             if channel:
                                 for headline, created_at, source, tickers in sorted_headlines:
                                     embed = Embed(
-                                        title=f"Tickers: {', '.join(tickers)}",
+                                        title=tickers
                                         description=f"**{headline}**",
                                         color=await self.bot.get_embed_colour(channel)
                                     )
