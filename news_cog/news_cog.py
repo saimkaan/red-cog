@@ -21,7 +21,7 @@ class NewsCog(commands.Cog):
     def cog_unload(self):
         self.fetch_data.cancel()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=10)
     async def fetch_data(self):
         data = self._get_data()
         if data:
