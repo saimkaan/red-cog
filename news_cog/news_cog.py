@@ -36,7 +36,7 @@ class NewsCog(commands.Cog):
                             if channel:
                                 for headline, created_at, source in sorted_headlines:
                                     embed = Embed(
-                                        title=headline,
+                                        description=headline,
                                         color=await self.bot.get_embed_colour(channel)
                                     )
                                     embed.set_footer(text=source)
