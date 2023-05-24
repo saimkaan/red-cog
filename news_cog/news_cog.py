@@ -54,7 +54,7 @@ class NewsCog(commands.Cog):
         }
         return channel_ids
 
-     def _get_data(self):
+    def _get_data(self):
         try:
             response = requests.get(API_URL, headers=headers)
             if response.status_code == 200:
@@ -74,5 +74,3 @@ class NewsCog(commands.Cog):
         except requests.RequestException as e:
             print(f'Failed to fetch data: {e}')
         return []
-
-
