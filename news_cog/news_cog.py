@@ -44,6 +44,7 @@ class NewsCog(commands.Cog):
                                     await channel.send(embed=embed)
                 self.latest_headlines.update(new_headlines)
 
+
     def get_channel_ids(self):
         # Return a dictionary mapping guild IDs to a list of channel IDs to post to
         # Example: {guild_id: [channel_id1, channel_id2], guild_id2: [channel_id3]}
@@ -65,6 +66,7 @@ class NewsCog(commands.Cog):
                         headline.get('source', "N/A"),
                     )
                     for headline in json_data['data']
+                    if headline.get('source', "N/A") == "tradex"
                 ]
                 return headlines
             else:
@@ -72,3 +74,4 @@ class NewsCog(commands.Cog):
         except requests.RequestException as e:
             print(f'Failed to fetch data: {e}')
         return []
+
