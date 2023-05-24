@@ -34,8 +34,9 @@ class NewsCog(commands.Cog):
                         for channel_id in channel_ids:
                             channel = guild.get_channel(channel_id)
                             if channel:
-                                for headline, created_at, source in sorted_headlines:
+                                for headline, created_at, source, tickers in sorted_headlines:
                                     embed = Embed(
+                                        title=tickers,
                                         description=f"**{headline}**",
                                         color=await self.bot.get_embed_colour(channel)
                                     )
@@ -63,6 +64,7 @@ class NewsCog(commands.Cog):
                     (
                         headline['headline'],
                         headline['created_at'],
+                        headline['tickers'],
                         headline.get('source', "N/A"),
                     )
                     for headline in json_data['data']
