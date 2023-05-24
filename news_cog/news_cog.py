@@ -36,7 +36,6 @@ class NewsCog(commands.Cog):
                             if channel:
                                 for headline, created_at, source in sorted_headlines:
                                     embed = Embed(
-                                        title=tickers[0],
                                         description=f"**{headline}**",
                                         color=await self.bot.get_embed_colour(channel)
                                     )
@@ -65,7 +64,6 @@ class NewsCog(commands.Cog):
                         headline['headline'],
                         headline['created_at'],
                         headline.get('source', "N/A"),
-                        headline.get('tickers', []),
                     )
                     for headline in json_data['data']
                     if headline.get('source', "N/A") == "tradex"
