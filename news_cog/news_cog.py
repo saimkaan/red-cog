@@ -36,7 +36,7 @@ class NewsCog(commands.Cog):
                             if channel:
                                 for headline, created_at, source, tickers in sorted_headlines:
                                     embed = Embed(
-                                        title=tickers,
+                                        title=tickers[0],
                                         description=f"**{headline}**",
                                         color=await self.bot.get_embed_colour(channel)
                                     )
@@ -55,28 +55,26 @@ class NewsCog(commands.Cog):
         }
         return channel_ids
 
-    def _get_data(self):
-    try:
-        response = requests.get(API_URL, headers=headers)
-        if response.status_code == 200:
-            json_data = response.json()
-            headlines = [
-                frozenset(
+     def _get_data(self):
+        try:
+            response = requests.get(API_URL, headers=headers)
+            if response.status_code == 200:
+                json_data = response.json()
+                headlines = [
                     (
                         headline['headline'],
                         headline['created_at'],
-                        headline['tickers'],
+                        headline.get('tickers', []),
                         headline.get('source', "N/A"),
                     )
-                )
-                for headline in json_data['data']
-                if headline.get('source', "N/A") == "tradex"
-            ]
-            return headlines
-        else:
-            print(f'Failed to fetch data. Status code: {response.status_code}')
-    except requests.RequestException as e:
-        print(f'Failed to fetch data: {e}')
-    return []
+                    for headline in json_data['data']
+                    if headline.get('source', "N/A") == "tradex"
+                ]
+                return headlines
+            else:
+                print(f'Failed to fetch data. Status code: {response.status_code}')
+        except requests.RequestException as e:
+            print(f'Failed to fetch data: {e}')
+        return []
 
 
