@@ -55,23 +55,23 @@ class NewsCog(commands.Cog):
         return channel_ids
 
     def _get_data(self):
-    try:
-        response = requests.get(API_URL, headers=headers)
-        if response.status_code == 200:
-            json_data = response.json()
-            headlines = [
-                (
-                    headline['headline'],
-                    headline['created_at'],
-                    headline.get('source', "N/A"),
-                )
-                for headline in json_data['data']
-                if headline.get('source', "N/A") == "tradex" and headline.get('is_major', False)
-            ]
-            return headlines
-        else:
-            print(f'Failed to fetch data. Status code: {response.status_code}')
-    except requests.RequestException as e:
-        print(f'Failed to fetch data: {e}')
+        try:
+            response = requests.get(API_URL, headers=headers)
+            if response.status_code == 200:
+                json_data = response.json()
+                headlines = [
+                    (
+                        headline['headline'],
+                        headline['created_at'],
+                        headline.get('source', "N/A"),
+                    )
+                    for headline in json_data['data']
+                    if headline.get('source', "N/A") == "tradex" and headline.get('is_major', False)
+                ]
+                return headlines
+            else:
+                print(f'Failed to fetch data. Status code: {response.status_code}')
+        except requests.RequestException as e:
+            print(f'Failed to fetch data: {e}')
     return []
 
