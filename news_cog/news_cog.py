@@ -73,5 +73,5 @@ class NewsCog(commands.Cog):
                 print(f'Failed to fetch data. Status code: {response.status_code}')
         except requests.RequestException as e:
             print(f'Failed to fetch data: {e}')
-    return []
+        return []
 
