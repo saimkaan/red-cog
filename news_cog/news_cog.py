@@ -66,7 +66,8 @@ class NewsCog(commands.Cog):
                         headline.get('source', "N/A"),
                     )
                     for headline in json_data['data']
-                    if headline.get('source', "N/A") == "tradex" and headline.get('is_major', False)
+                    if headline.get('is_major', False)
+                    #if headline.get('source', "N/A") == "tradex" and headline.get('is_major', False)
                 ]
                 return headlines
             else:
