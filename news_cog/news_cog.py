@@ -1,6 +1,5 @@
-from redbot.core import Config, app_commands, commands
+from redbot.core import Config, commands
 from redbot.core.bot import Red
-from discord.ext import tasks
 from discord import Embed
 import requests
 import datetime
@@ -35,12 +34,13 @@ class NewsCog(commands.Cog):
     async def fetch_data(self):
         while True:
             try:
-                data = self._get_data()
+                data = await self._get_data()
                 if data:
-                    new_headlines = set(data) - self.latest_headlines
+                    new_headlines = data - self.latest_headlines
                     if new_headlines:
                         sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
-                        for guild_id, channel_ids in self.get_channel_ids().items():
+                        channel_ids = self.get_channel_ids()
+                        for guild_id, channel_ids in channel_ids.items():
                             guild = self.bot.get_guild(guild_id)
                             if guild:
                                 for channel_id in channel_ids:
@@ -60,7 +60,6 @@ class NewsCog(commands.Cog):
                 print(f"An error occurred in fetch_data task: {e}")
                 await asyncio.sleep(60)  # Wait for 1 minute before retrying
 
-
     def get_channel_ids(self):
         # Return a dictionary mapping guild IDs to a list of channel IDs to post to
         # Example: {guild_id: [channel_id1, channel_id2], guild_id2: [channel_id3]}
@@ -70,12 +69,12 @@ class NewsCog(commands.Cog):
         }
         return channel_ids
 
-    def _get_data(self):
+    async def _get_data(self):
         try:
-            response = requests.get(API_URL, headers=headers)
+            response = await asyncio.get_event_loop().run_in_executor(None, requests.get, API_URL, headers=headers)
             if response.status_code == 200:
                 json_data = response.json()
-                headlines = [
+                headlines = {
                     (
                         headline['headline'],
                         headline['created_at'],
@@ -84,11 +83,10 @@ class NewsCog(commands.Cog):
                     for headline in json_data['data']
                     if headline.get('is_major', False)
                     #if headline.get('source', "N/A") == "tradex" and headline.get('is_major', False)
-                ]
+                }
                 return headlines
             else:
                 print(f'Failed to fetch data. Status code: {response.status_code}')
         except requests.RequestException as e:
             print(f'Failed to fetch data: {e}')
-        return []
-
+        return set()
