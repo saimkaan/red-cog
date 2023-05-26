@@ -17,39 +17,48 @@ class NewsCog(commands.Cog):
     def __init__(self, bot: Red):
         self.bot = bot
         self.latest_headlines = set()
-        self.fetch_data.start()
+        self.fetch_data_task = None
+        self.start_fetch_data()
 
     def cog_unload(self):
-        self.fetch_data.cancel()
+        self.stop_fetch_data()
 
-    @tasks.loop(seconds=10)
+    def start_fetch_data(self):
+        if self.fetch_data_task is None:
+            self.fetch_data_task = self.bot.loop.create_task(self.fetch_data())
+
+    def stop_fetch_data(self):
+        if self.fetch_data_task is not None:
+            self.fetch_data_task.cancel()
+            self.fetch_data_task = None
+
     async def fetch_data(self):
-        try:
-            data = await self._get_data()
-            if data:
-                new_headlines = set(data) - self.latest_headlines
-                if new_headlines:
-                    sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
-                    for guild_id, channel_ids in self.get_channel_ids().items():
-                        guild = self.bot.get_guild(guild_id)
-                        if guild:
-                            for channel_id in channel_ids:
-                                channel = guild.get_channel(channel_id)
-                                if channel:
-                                    for headline, created_at, source in sorted_headlines:
-                                        embed = Embed(
-                                            description=f"**{headline}**",
-                                            color=await self.bot.get_embed_colour(channel)
-                                        )
-                                        embed.set_footer(text=source)
-                                        embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
-                                        await channel.send(embed=embed)
-                    self.latest_headlines.update(new_headlines)
-        except Exception as e:
-            print(f"An error occurred in fetch_data task: {e}")
-            # Restart the task after a delay
-            await asyncio.sleep(60)  # Wait for 1 minute
-            self.fetch_data.restart()
+        while True:
+            try:
+                data = self._get_data()
+                if data:
+                    new_headlines = set(data) - self.latest_headlines
+                    if new_headlines:
+                        sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
+                        for guild_id, channel_ids in self.get_channel_ids().items():
+                            guild = self.bot.get_guild(guild_id)
+                            if guild:
+                                for channel_id in channel_ids:
+                                    channel = guild.get_channel(channel_id)
+                                    if channel:
+                                        for headline, created_at, source in sorted_headlines:
+                                            embed = Embed(
+                                                description=f"**{headline}**",
+                                                color=await self.bot.get_embed_colour(channel)
+                                            )
+                                            embed.set_footer(text=source)
+                                            embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
+                                            await channel.send(embed=embed)
+                        self.latest_headlines.update(new_headlines)
+                await asyncio.sleep(10)  # Wait for 10 seconds before fetching data again
+            except Exception as e:
+                print(f"An error occurred in fetch_data task: {e}")
+                await asyncio.sleep(60)  # Wait for 1 minute before retrying
 
 
     def get_channel_ids(self):
