@@ -5,6 +5,7 @@ from discord import Embed
 import requests
 import datetime
 import pytz
+import asyncio
 
 API_URL = 'https://phx.unusualwhales.com/api/news/headlines-feed?limit=50'
 
@@ -23,26 +24,32 @@ class NewsCog(commands.Cog):
 
     @tasks.loop(seconds=10)
     async def fetch_data(self):
-        data = self._get_data()
-        if data:
-            new_headlines = set(data) - self.latest_headlines
-            if new_headlines:
-                sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
-                for guild_id, channel_ids in self.get_channel_ids().items():
-                    guild = self.bot.get_guild(guild_id)
-                    if guild:
-                        for channel_id in channel_ids:
-                            channel = guild.get_channel(channel_id)
-                            if channel:
-                                for headline, created_at, source in sorted_headlines:
-                                    embed = Embed(
-                                        description=f"**{headline}**",
-                                        color=await self.bot.get_embed_colour(channel)
-                                    )
-                                    embed.set_footer(text=source)
-                                    embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
-                                    await channel.send(embed=embed)
-                self.latest_headlines.update(new_headlines)
+        try:
+            data = await self._get_data()
+            if data:
+                new_headlines = set(data) - self.latest_headlines
+                if new_headlines:
+                    sorted_headlines = sorted(new_headlines, key=lambda x: x[1])
+                    for guild_id, channel_ids in self.get_channel_ids().items():
+                        guild = self.bot.get_guild(guild_id)
+                        if guild:
+                            for channel_id in channel_ids:
+                                channel = guild.get_channel(channel_id)
+                                if channel:
+                                    for headline, created_at, source in sorted_headlines:
+                                        embed = Embed(
+                                            description=f"**{headline}**",
+                                            color=await self.bot.get_embed_colour(channel)
+                                        )
+                                        embed.set_footer(text=source)
+                                        embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
+                                        await channel.send(embed=embed)
+                    self.latest_headlines.update(new_headlines)
+        except Exception as e:
+            print(f"An error occurred in fetch_data task: {e}")
+            # Restart the task after a delay
+            await asyncio.sleep(60)  # Wait for 1 minute
+            self.fetch_data.restart()
 
 
     def get_channel_ids(self):
