@@ -71,7 +71,7 @@ class NewsCog(commands.Cog):
 
     async def _get_data(self):
         try:
-            response = await asyncio.get_event_loop().run_in_executor(None, requests.get, API_URL, headers=headers)
+            response = await asyncio.get_event_loop().run_in_executor(None, lambda: requests.get(API_URL, headers=headers))
             if response.status_code == 200:
                 json_data = response.json()
                 headlines = {
