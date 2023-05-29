@@ -87,8 +87,6 @@ class Test(commands.Cog):
                     print(f"2")
                     # Check if the headline is already seen
                     headline = item["headline"]
-                    if isinstance(headline, dict):
-                        headline = tuple(headline.items())
                     #is_major = item["is_major"]
                     #if is_major and headline not in seen:
                     if headline not in seen:
@@ -98,7 +96,7 @@ class Test(commands.Cog):
                         # Create an embed with the headline and other information
                         embed = discord.Embed(title=headline, url=item["url"], timestamp=item["created_at"])
                         embed.set_footer(text=f"Source: {item['source']}")
-                        embed.add_field(name="Tickers", value=", ".join(item["tickers"]))
+                        #embed.add_field(name="Tickers", value=", ".join(item["tickers"]))
                         # Send the embed to the channel
                         await channel.send(embed=embed)
             except Exception as e:
