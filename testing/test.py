@@ -14,7 +14,6 @@ class Test(commands.Cog):
         self.config.register_guild(**default_guild_settings)
         self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=50"
         self.tasks = {}
-        self.start()
 
     @commands.group()
     async def newsfeed(self, ctx):
