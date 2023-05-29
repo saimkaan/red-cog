@@ -55,7 +55,7 @@ class NewsCog(commands.Cog):
                                             embed.timestamp = datetime.datetime.now(pytz.utc)  # Use UTC time
                                             await channel.send(embed=embed)
                         self.latest_headlines.update(new_headlines)
-                await asyncio.sleep(10)  # Wait for 10 seconds before fetching data again
+                await asyncio.sleep(5)  # Wait for 10 seconds before fetching data again
             except Exception as e:
                 print(f"An error occurred in fetch_data task: {e}")
                 await asyncio.sleep(60)  # Wait for 1 minute before retrying
