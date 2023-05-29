@@ -69,9 +69,9 @@ class NewsFeed(commands.Cog):
                                 for item in new_data:
                                     if item["tickers"]:
                                         tickers = ", ".join(item["tickers"])
-                                        embed = discord.Embed(title=f"**{tickers}**", description=f"**{item['headline']}**", timestamp=datetime.datetime.now(pytz.utc))
+                                        embed = discord.Embed(title=f"{tickers}", description=f"{item['headline']}", timestamp=datetime.datetime.now(pytz.utc))
                                     else:
-                                        embed = discord.Embed(description=f"**{item['headline']}**", timestamp=datetime.datetime.now(pytz.utc))
+                                        embed = discord.Embed(description=f"{item['headline']}", timestamp=datetime.datetime.now(pytz.utc))
                                     embed.set_footer(text=item["source"])
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
