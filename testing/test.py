@@ -1,5 +1,5 @@
 import discord
-from redbot.core import commands
+from redbot.core import commands, Config
 import requests
 import asyncio
 
@@ -8,8 +8,10 @@ class Test(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, identifier=1234567890)  # Use a unique identifier for your cog
+        default_guild_settings = {"channel_id": None}
+        self.config.register_guild(**default_guild_settings)
         self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=50"
-        self.channel = None
         self.task = None
 
     @commands.group()
@@ -20,20 +22,28 @@ class Test(commands.Cog):
     @newsfeed.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         """Set the channel where the news feed will be posted."""
-        self.channel = channel
+        await self.config.guild(ctx.guild).channel_id.set(channel.id)
         await ctx.send(f"News feed channel set to {channel.mention}.")
 
     @newsfeed.command()
     async def start(self, ctx):
         """Start the news feed task."""
-        if self.channel is None:
+        channel_id = await self.config.guild(ctx.guild).channel_id()
+        if channel_id is None:
             await ctx.send("You need to set a channel first.")
             return
-        if self.task is None or not self.task.is_running():
+
+        self.channel = self.bot.get_channel(channel_id)
+        if self.channel is None:
+            await ctx.send("Invalid channel. Please set a valid channel.")
+            return
+
+        if self.task is None or not self.task.done():
             self.task = self.bot.loop.create_task(self.news_feed_loop())
             await ctx.send("News feed started.")
         else:
             await ctx.send("News feed is already running.")
+
 
     @newsfeed.command()
     async def stop(self, ctx):
