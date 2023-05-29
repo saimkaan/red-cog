@@ -17,15 +17,16 @@ class LastActivityCog(commands.Cog):
 
     @commands.command()
     async def last_activity(self, ctx):
+        embed = Embed(title="Users and their last activity time")
         users = await self.config.users()
         for user_id, last_activity in users.items():
             user = self.bot.get_user(int(user_id))
             if user:
                 last_activity_time = datetime.fromtimestamp(last_activity)
-                await ctx.send(f"{user.name}: {last_activity_time}")
+                embed.add_field(name=user.name, value=last_activity_time)
             else:
-                await ctx.send(f"User with ID {user_id} not found.")
-
+                embed.add_field(name=f"User with ID {user_id}", value="Not found")
+        await ctx.send(embed=embed)
 
     @commands.command()
     @checks.admin_or_permissions(administrator=True)
@@ -38,13 +39,3 @@ class LastActivityCog(commands.Cog):
                 if user:
                     await ctx.guild.kick(user)
                     await ctx.send(f"Kicked {user.name} for inactivity.")
-
-    @commands.command()
-    async def view_users(self, ctx):
-        embed = Embed(title="Users and their last activity time")
-        users = await self.config.users()
-        for user_id, last_activity in users.items():
-            user = self.bot.get_user(int(user_id))
-            last_activity_time = datetime.fromtimestamp(last_activity)
-            embed.add_field(name=user.name, value=last_activity_time)
-        await ctx.send(embed=embed)
