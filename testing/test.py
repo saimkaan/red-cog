@@ -12,7 +12,7 @@ class NewsFeed(commands.Cog):
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
-        self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=50"
+        self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=10"
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
@@ -61,15 +61,17 @@ class NewsFeed(commands.Cog):
                 async with self.session.get(self.url, headers=self.headers) as resp:
                     json_data = await resp.json()
                     new_data = [item for item in json_data["data"] if item not in self.data and item["is_major"]]
-                    print(new_data)  # Add this line to see the filtered data
                     if new_data:
                         for guild in self.bot.guilds:
                             channels = await self.config.guild(guild).channels()
                             for channel_id in channels:
                                 channel = guild.get_channel(channel_id)
                                 for item in new_data:
-                                    embed = discord.Embed(description=item["headline"], timestamp=datetime.datetime.now(pytz.utc))
+                                    embed = discord.Embed(title=item["headline"], timestamp=item["created_at"])
                                     embed.set_footer(text=item["source"])
+                                    if item["tickers"]:
+                                        tickers = ", ".join(item["tickers"])
+                                        embed.add_field(name="Tickers", value=tickers)
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
                 await asyncio.sleep(5)
