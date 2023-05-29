@@ -59,10 +59,13 @@ class Test(commands.Cog):
         """The loop that fetches and posts the news headlines."""
         # Initialize a set of seen headlines
         seen = set()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        }
         while True:
             try:
                 # Get the JSON data from the URL
-                response = requests.get(self.url)
+                response = requests.get(self.url, headers=headers)
                 response.raise_for_status()  # Raise an exception if the response is not 200 OK
                 data = response.json()
                 # Iterate over the data in reverse order (oldest to newest)
