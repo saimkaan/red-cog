@@ -58,7 +58,6 @@ class NewsFeed(commands.Cog):
             try:
                 async with self.session.get(self.url, headers=self.headers) as resp:
                     json_data = await resp.json()
-                    print(json_data)  # Add this line to check the fetched data
                     new_data = [item for item in json_data["data"] if item not in self.data and item["is_major"]]
                     print(new_data)  # Add this line to see the filtered data
                     if new_data:
@@ -67,7 +66,7 @@ class NewsFeed(commands.Cog):
                             for channel_id in channels:
                                 channel = guild.get_channel(channel_id)
                                 for item in new_data:
-                                    embed = discord.Embed(title=item["headline"], timestamp=item["created_at"])
+                                    embed = discord.Embed(description=item["headline"], timestamp=item["created_at"])
                                     embed.set_footer(text=item["source"])
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
