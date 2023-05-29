@@ -1,12 +1,13 @@
 import discord
 from redbot.core import commands, Config
+from redbot.core.bot import Red
 import requests
 import asyncio
 
 class Test(commands.Cog):
     """A cog that posts news headlines from a URL."""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Red):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1234567890)  # Use a unique identifier for your cog
         default_guild_settings = {"channel_id": None}
