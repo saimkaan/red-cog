@@ -9,11 +9,11 @@ class Test(commands.Cog):
 
     def __init__(self, bot: Red):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1234567890)  # Use a unique identifier for your cog
-        default_guild_settings = {"channel_id": None}
+        self.config = Config.get_conf(self, identifier=133713371337)  # Use a unique identifier for your cog
+        default_guild_settings = {"channel_ids": {}}
         self.config.register_guild(**default_guild_settings)
         self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=50"
-        self.task = None
+        self.tasks = {}
 
     @commands.group()
     async def newsfeed(self, ctx):
@@ -21,43 +21,49 @@ class Test(commands.Cog):
         pass
 
     @newsfeed.command()
-    async def setchannel(self, ctx, channel: discord.TextChannel):
+    async def setchannel(self, ctx, guild_id: int, channel: discord.TextChannel):
         """Set the channel where the news feed will be posted."""
-        await self.config.guild(ctx.guild).channel_id.set(channel.id)
-        await ctx.send(f"News feed channel set to {channel.mention}.")
-        print(f"Error in news feed loop: {channel.mention}")  # Print the error message
+        await self.config.guild(ctx.guild).channel_ids.set_raw(guild_id, value=channel.id)
+        await ctx.send(f"News feed channel set to {channel.mention} for guild ID {guild_id}.")
+        print(f"News feed channel set to {channel.mention} for guild ID {guild_id}")
 
     @newsfeed.command()
-    async def start(self, ctx):
-        """Start the news feed task."""
-        channel_id = await self.config.guild(ctx.guild).channel_id()
+    async def removechannel(self, ctx, guild_id: int):
+        """Remove the channel for the news feed on a specific guild."""
+        await self.config.guild(ctx.guild).channel_ids.clear_raw(guild_id)
+        await ctx.send(f"News feed channel removed for guild ID {guild_id}.")
+        print(f"News feed channel removed for guild ID {guild_id}")
+
+    @newsfeed.command()
+    async def start(self, ctx, guild_id: int):
+        """Start the news feed task on a specific guild."""
+        channel_id = await self.config.guild(ctx.guild).channel_ids.get_raw(guild_id)
         if channel_id is None:
-            await ctx.send("You need to set a channel first.")
+            await ctx.send("You need to set a channel first for the specified guild.")
             return
 
-        self.channel = self.bot.get_channel(channel_id)
-        if self.channel is None:
-            await ctx.send("Invalid channel. Please set a valid channel.")
+        channel = self.bot.get_channel(channel_id)
+        if channel is None:
+            await ctx.send("Invalid channel. Please set a valid channel for the specified guild.")
             return
 
-        if self.task is None or not self.task.done():
-            self.task = self.bot.loop.create_task(self.news_feed_loop())
-            await ctx.send("News feed started.")
+        if guild_id in self.tasks and not self.tasks[guild_id].done():
+            await ctx.send("News feed is already running for the specified guild.")
         else:
-            await ctx.send("News feed is already running.")
-
+            self.tasks[guild_id] = self.bot.loop.create_task(self.news_feed_loop(guild_id))
+            await ctx.send("News feed started for the specified guild.")
 
     @newsfeed.command()
-    async def stop(self, ctx):
-        """Stop the news feed task."""
-        if self.task is not None and self.task.is_running():
-            self.task.cancel()
-            await ctx.send("News feed stopped.")
+    async def stop(self, ctx, guild_id: int):
+        """Stop the news feed task on a specific guild."""
+        if guild_id in self.tasks and self.tasks[guild_id].done():
+            await ctx.send("News feed is not running for the specified guild.")
         else:
-            await ctx.send("News feed is not running.")
+            self.tasks[guild_id].cancel()
+            await ctx.send("News feed stopped for the specified guild.")
 
-    async def news_feed_loop(self):
-        """The loop that fetches and posts the news headlines."""
+    async def news_feed_loop(self, guild_id: int):
+        """The loop that fetches and posts the news headlines for a specific guild."""
         # Initialize a set of seen headlines
         seen = set()
         headers = {
@@ -65,6 +71,12 @@ class Test(commands.Cog):
         }
         while True:
             try:
+                channel_id = await self.config.guild_from_id(guild_id).channel_ids()
+                if channel_id is None:
+                    continue  # Skip guilds without a configured channel
+                channel = self.bot.get_channel(channel_id)
+                if channel is None:
+                    continue  # Skip invalid channels
                 # Get the JSON data from the URL
                 response = requests.get(self.url, headers=headers)
                 response.raise_for_status()  # Raise an exception if the response is not 200 OK
@@ -82,11 +94,11 @@ class Test(commands.Cog):
                         embed.set_footer(text=f"Source: {item['source']}")
                         embed.add_field(name="Tickers", value=", ".join(item["tickers"]))
                         # Send the embed to the channel
-                        await self.channel.send(embed=embed)
+                        await channel.send(embed=embed)
             except Exception as e:
                 # Log the error and continue the loop
-                self.bot.logger.error(f"Error in news feed loop: {e}")
-                print(f"Error in news feed loop: {e}")  # Print the error message
+                self.bot.logger.error(f"Error in news feed loop for guild ID {guild_id}: {e}")
+                print(f"Error in news feed loop for guild ID {guild_id}: {e}")
             finally:
                 # Wait for 5 seconds before repeating
                 await asyncio.sleep(5)
