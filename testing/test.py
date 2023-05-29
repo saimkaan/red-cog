@@ -14,6 +14,7 @@ class Test(commands.Cog):
         self.config.register_guild(**default_guild_settings)
         self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=50"
         self.tasks = {}
+        self.start()
 
     @commands.group()
     async def newsfeed(self, ctx):
@@ -103,7 +104,6 @@ class Test(commands.Cog):
                 # Log the error and continue the loop
                 self.bot.logger.error(f"Error in news feed loop for guild ID {guild_id}: {e}")
                 print(f"Error in news feed loop for guild ID {guild_id}: {e}")
-            finally:
                 # Wait for 5 seconds before repeating
-                await asyncio.sleep(5)
-                print(f"4")
+            await asyncio.sleep(5)
+            print(f"4")
