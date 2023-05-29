@@ -52,9 +52,12 @@ class NewsFeed(commands.Cog):
 
     # A background task that runs every 5 seconds
     async def check_news(self):
+        print(f"1")
         """Checks for new news from the website and posts them to the channels."""
         while True:
+            print(f"2")
             await asyncio.sleep(5)  # Wait for 5 seconds
+            print(f"3")
             channels = await self.config.guild(self.bot.guild).channels()
             # Get the data from the URL as JSON (you need to import aiohttp for this)
             async with aiohttp.ClientSession() as session:
@@ -69,6 +72,7 @@ class NewsFeed(commands.Cog):
             # Store the new data
             self.data = data
             # Loop through each news item in reverse order (to post oldest first)
+            print(f"7")
             for item in reversed(data["data"]):
                 # Create an embed with the news information
                 embed = discord.Embed(title=item["headline"], color=discord.Color.blue())
@@ -79,9 +83,11 @@ class NewsFeed(commands.Cog):
                     # Get the channel object from the bot
                     channel = self.bot.get_channel(int(channel_id))
                     # Check if the channel exists
+                    print(f"4")
                     if channel:
                         # Send the embed to the channel
                         await channel.send(embed=embed)
+                        print(f"5")
 
     # A command to start the background task
     @commands.command()
