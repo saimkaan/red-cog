@@ -2,6 +2,8 @@ from redbot.core import commands, Config
 import aiohttp
 import asyncio
 import discord
+import datetime
+import pytz
 
 class NewsFeed(commands.Cog):
     def __init__(self, bot):
@@ -66,7 +68,7 @@ class NewsFeed(commands.Cog):
                             for channel_id in channels:
                                 channel = guild.get_channel(channel_id)
                                 for item in new_data:
-                                    embed = discord.Embed(description=item["headline"], timestamp=item["created_at"])
+                                    embed = discord.Embed(description=item["headline"], timestamp=datetime.datetime.now(pytz.utc))
                                     embed.set_footer(text=item["source"])
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
