@@ -25,6 +25,7 @@ class Test(commands.Cog):
         """Set the channel where the news feed will be posted."""
         await self.config.guild(ctx.guild).channel_id.set(channel.id)
         await ctx.send(f"News feed channel set to {channel.mention}.")
+        print(f"Error in news feed loop: {channel.mention}")  # Print the error message
 
     @newsfeed.command()
     async def start(self, ctx):
@@ -60,7 +61,7 @@ class Test(commands.Cog):
         # Initialize a set of seen headlines
         seen = set()
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
         }
         while True:
             try:
@@ -85,6 +86,7 @@ class Test(commands.Cog):
             except Exception as e:
                 # Log the error and continue the loop
                 self.bot.logger.error(f"Error in news feed loop: {e}")
+                print(f"Error in news feed loop: {e}")  # Print the error message
             finally:
                 # Wait for 5 seconds before repeating
                 await asyncio.sleep(5)
