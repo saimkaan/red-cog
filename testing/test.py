@@ -56,7 +56,7 @@ class NewsFeed(commands.Cog):
             try:
                 async with self.session.get(self.url, headers=self.headers) as resp:
                     json_data = await resp.json()
-                    new_data = [item for item in json_data["data"] if item not in self.data]
+                    new_data = [item for item in json_data["data"] if item not in self.data and item["is_major"]]
                     if new_data:
                         for guild in self.bot.guilds:
                             channels = await self.config.guild(guild).channels()
