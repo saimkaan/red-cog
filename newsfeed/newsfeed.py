@@ -12,7 +12,7 @@ class NewsFeed(commands.Cog):
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
-        self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=10"
+        self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=20"
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
