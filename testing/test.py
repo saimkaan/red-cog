@@ -71,7 +71,7 @@ class NewsFeed(commands.Cog):
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
                 await asyncio.sleep(5)
-                print(f'Refresh 5 sec')
             except Exception as e:
+                print(e)
                 await asyncio.sleep(60)
-                print(f'wait 60 sec')
+
