@@ -52,13 +52,14 @@ class Test(commands.Cog):
             try:
                 # Get the JSON data from the URL
                 response = requests.get(self.url)
-                response.raise_for_status() # Raise an exception if the response is not 200 OK
+                response.raise_for_status()  # Raise an exception if the response is not 200 OK
                 data = response.json()
                 # Iterate over the data in reverse order (oldest to newest)
                 for item in reversed(data["data"]):
                     # Check if the headline is already seen
                     headline = item["headline"]
-                    if headline not in seen:
+                    is_major = item["is_major"]
+                    if is_major and headline not in seen:
                         # Add the headline to the seen set
                         seen.add(headline)
                         # Create an embed with the headline and other information
