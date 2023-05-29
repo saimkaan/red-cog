@@ -101,9 +101,7 @@ class Test(commands.Cog):
                         # Send the embed to the channel
                         await channel.send(embed=embed)
             except Exception as e:
-                # Log the error and continue the loop
-                self.bot.logger.error(f"Error in news feed loop for guild ID {guild_id}: {e}")
                 print(f"Error in news feed loop for guild ID {guild_id}: {e}")
-                # Wait for 5 seconds before repeating
+                await asyncio.sleep(60)
             await asyncio.sleep(5)
             print(f"4")
