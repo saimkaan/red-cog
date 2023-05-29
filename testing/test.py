@@ -59,6 +59,7 @@ class NewsFeed(commands.Cog):
                 async with self.session.get(self.url, headers=self.headers) as resp:
                     json_data = await resp.json()
                     new_data = [item for item in json_data["data"] if item not in self.data and item["is_major"]]
+                    print(f'1')
                     if new_data:
                         for guild in self.bot.guilds:
                             channels = await self.config.guild(guild).channels()
@@ -69,6 +70,9 @@ class NewsFeed(commands.Cog):
                                     embed.set_footer(text=item["source"])
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
+                        print(f'2')
                 await asyncio.sleep(5)
+                print(f'Refresh 5 sec')
             except Exception as e:
                 await asyncio.sleep(60)
+                print(f'wait 60 sec')
