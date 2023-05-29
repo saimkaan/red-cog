@@ -23,7 +23,7 @@ class LastActivityCog(commands.Cog):
             await ctx.send(f"{user.name}: {last_activity_time}")
 
     @commands.command()
-    async def kick_inactive(self, ctx):
+    async def kick_inactive_users(self, ctx):
         six_months_ago = datetime.now() - timedelta(days=180)
         users = await self.config.users()
         for user_id, last_activity in users.items():
