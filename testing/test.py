@@ -87,10 +87,13 @@ class NewsFeed(commands.Cog):
     @commands.command()
     async def startnews(self, ctx):
         """Starts the background task to fetch and post news."""
-        if self.check_news_task:
+        if self.check_news_task is not None:  # Check if the task is already running
+            await ctx.send("The news feed is already running.")
             return
+
         await self.initialize()
         self.check_news_task = asyncio.create_task(self.check_news())
+        await ctx.send("News feed started.")
 
     # A command to stop the background task
     @commands.command()
