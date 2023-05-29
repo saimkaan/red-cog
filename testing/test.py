@@ -85,8 +85,9 @@ class Test(commands.Cog):
                 for item in reversed(data["data"]):
                     # Check if the headline is already seen
                     headline = item["headline"]
-                    is_major = item["is_major"]
-                    if is_major and headline not in seen:
+                    #is_major = item["is_major"]
+                    #if is_major and headline not in seen:
+                    if headline not in seen:
                         # Add the headline to the seen set
                         seen.add(headline)
                         # Create an embed with the headline and other information
