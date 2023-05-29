@@ -67,11 +67,12 @@ class NewsFeed(commands.Cog):
                             for channel_id in channels:
                                 channel = guild.get_channel(channel_id)
                                 for item in new_data:
-                                    embed = discord.Embed(title=item["headline"], timestamp=datetime.datetime.now(pytz.utc))
-                                    embed.set_footer(text=item["source"])
                                     if item["tickers"]:
                                         tickers = ", ".join(item["tickers"])
-                                        embed.add_field(name="Tickers", value=tickers)
+                                        embed = discord.Embed(title=f"**{tickers}**", description=f"**{item['headline']}**", timestamp=datetime.datetime.now(pytz.utc))
+                                    else:
+                                        embed = discord.Embed(description=f"**{item['headline']}**", timestamp=datetime.datetime.now(pytz.utc))
+                                    embed.set_footer(text=item["source"])
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
                 await asyncio.sleep(5)
