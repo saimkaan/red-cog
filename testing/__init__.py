@@ -1,4 +1,4 @@
-from .test import Test
+from .test import NewsFeed
 
 async def setup(bot):
-    await bot.add_cog(Test(bot))
+    await bot.add_cog(NewsFeed(bot))
