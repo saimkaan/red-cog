@@ -87,6 +87,8 @@ class Test(commands.Cog):
                     print(f"2")
                     # Check if the headline is already seen
                     headline = item["headline"]
+                    if isinstance(headline, dict):
+                        headline = tuple(headline.items())
                     #is_major = item["is_major"]
                     #if is_major and headline not in seen:
                     if headline not in seen:
