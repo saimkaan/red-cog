@@ -6,7 +6,7 @@ import discord
 class NewsFeed(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1231234444)
+        self.config = Config.get_conf(self, identifier=1231231337)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -41,6 +41,15 @@ class NewsFeed(commands.Cog):
                 return
             channels.remove(channel.id)
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
+
+    @newsfeed.command()
+    async def listchannels(self, ctx):
+        channels = await self.config.guild(ctx.guild).channels()
+        if not channels:
+            await ctx.send("No news feed channels set.")
+            return
+        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
+        await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
 
     async def fetch_data(self):
         while True:
