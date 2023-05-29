@@ -56,9 +56,12 @@ class LastActivityCog(commands.Cog):
     @commands.command()
     async def preview_kick(self, ctx):
         embed = Embed(title="Users that would be kicked by the kick_inactive command")
+        # Calculate the number of days of inactivity
         six_months_ago = datetime.now() - timedelta(days=180)
+        days = (datetime.now() - six_months_ago).days
+
         for user_id, last_activity in self.users.items():
-            if datetime.fromtimestamp(last_activity) < six_months_ago:
+            if (datetime.now() - datetime.fromtimestamp(last_activity)).days > days:
                 user = self.bot.get_user(int(user_id))
                 if user:
                     embed.add_field(name=user.name, value="Would be kicked")
