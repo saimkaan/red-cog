@@ -81,13 +81,16 @@ class Test(commands.Cog):
                 response = requests.get(self.url, headers=headers)
                 response.raise_for_status()  # Raise an exception if the response is not 200 OK
                 data = response.json()
+                print(f"1")
                 # Iterate over the data in reverse order (oldest to newest)
                 for item in reversed(data["data"]):
+                    print(f"2")
                     # Check if the headline is already seen
                     headline = item["headline"]
                     #is_major = item["is_major"]
                     #if is_major and headline not in seen:
                     if headline not in seen:
+                        print(f"3")
                         # Add the headline to the seen set
                         seen.add(headline)
                         # Create an embed with the headline and other information
@@ -103,3 +106,4 @@ class Test(commands.Cog):
             finally:
                 # Wait for 5 seconds before repeating
                 await asyncio.sleep(5)
+                print(f"4")
