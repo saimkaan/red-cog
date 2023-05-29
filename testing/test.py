@@ -18,9 +18,9 @@ class NewsFeed(commands.Cog):
         self.config.register_guild(channels={})  # Register the guild-level channels data
         self.check_news_task = None
 
-    async def initialize(self):
+    async def initialize(self, guild):
         """Load the stored channels data when the cog is initialized."""
-        await self.config.guild_from_id(self.bot.guild.id).channels()
+        await self.config.guild(guild).channels()
 
     # A command to add a channel to receive news
     @commands.command()
@@ -91,7 +91,7 @@ class NewsFeed(commands.Cog):
             await ctx.send("The news feed is already running.")
             return
 
-        await self.initialize()
+        await self.initialize(ctx.guild)
         self.check_news_task = asyncio.create_task(self.check_news())
         await ctx.send("News feed started.")
 
