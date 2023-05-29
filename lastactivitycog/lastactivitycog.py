@@ -7,23 +7,24 @@ class LastActivityCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=187187187)
-        default_global = {"users": {}}
-        self.config.register_global(**default_global)
-        self.users = {}
+        default_guild = {"users": {}}
+        self.config.register_guild(**default_guild)
 
-    async def load_users(self):
-        self.users = await self.config.users()
+    async def load_users(self, guild):
+        return await self.config.guild(guild).users()
 
-    async def save_users(self):
-        await self.config.users.set(self.users)
+    async def save_users(self, guild, users):
+        await self.config.guild(guild).users.set(users)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot:
             return
         author = message.author
-        self.users[str(author.id)] = datetime.now().timestamp()
-        await self.save_users()
+        guild = message.guild
+        users = await self.load_users(guild)
+        users[str(author.id)] = datetime.now().timestamp()
+        await self.save_users(guild, users)
 
     @commands.command()
     @checks.admin_or_permissions(administrator=True)
@@ -40,7 +41,7 @@ class LastActivityCog(commands.Cog):
     async def last_activity(self, ctx):
         users_per_page = 10
         pages = []
-        users = list(self.users.items())
+        users = list((await self.load_users(ctx.guild)).items())
         for i in range(0, len(users), users_per_page):
             embed = Embed(title="Users and their last activity time")
             for user_id, last_activity in users[i:i+users_per_page]:
@@ -60,7 +61,8 @@ class LastActivityCog(commands.Cog):
         six_months_ago = datetime.now() - timedelta(days=180)
         days = (datetime.now() - six_months_ago).days
 
-        for user_id, last_activity in self.users.items():
+        users = await self.load_users(ctx.guild)
+        for user_id, last_activity in users.items():
             if (datetime.now() - datetime.fromtimestamp(last_activity)).days > days:
                 user = self.bot.get_user(int(user_id))
                 if user:
