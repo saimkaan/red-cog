@@ -71,7 +71,7 @@ class Test(commands.Cog):
         }
         while True:
             try:
-                channel_id = await self.config.guild_from_id(guild_id).channel_ids()
+                channel_id = await self.config.guild(ctx.guild).channel_ids.get_raw(guild_id)
                 if channel_id is None:
                     continue  # Skip guilds without a configured channel
                 channel = self.bot.get_channel(channel_id)
@@ -102,5 +102,6 @@ class Test(commands.Cog):
             except Exception as e:
                 print(f"Error in news feed loop for guild ID {guild_id}: {e}")
                 await asyncio.sleep(60)
+                
             await asyncio.sleep(5)
             print(f"4")
