@@ -16,6 +16,7 @@ class NewsFeed(commands.Cog):
         self.data = None  # The data structure to store the news
         self.config = Config.get_conf(self, identifier=1234567890)  # Use a unique identifier for your cog
         self.config.register_guild(channels={})  # Register the guild-level channels data
+        self.check_news_task = None
 
     async def initialize(self):
         """Load the stored channels data when the cog is initialized."""
