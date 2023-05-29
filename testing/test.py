@@ -6,7 +6,7 @@ import discord
 class NewsFeed(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1234567890)
+        self.config = Config.get_conf(self, identifier=1231234444)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
