@@ -50,7 +50,7 @@ class Test(commands.Cog):
         if guild_id in self.tasks and not self.tasks[guild_id].done():
             await ctx.send("News feed is already running for the specified guild.")
         else:
-            self.tasks[guild_id] = self.bot.loop.create_task(self.news_feed_loop(guild_id))
+            self.tasks[guild_id] = self.bot.loop.create_task(self.news_feed_loop(ctx, guild_id))
             await ctx.send("News feed started for the specified guild.")
 
     @newsfeed.command()
@@ -102,6 +102,6 @@ class Test(commands.Cog):
             except Exception as e:
                 print(f"Error in news feed loop for guild ID {guild_id}: {e}")
                 await asyncio.sleep(60)
-                
+
             await asyncio.sleep(5)
             print(f"4")
