@@ -11,7 +11,7 @@ class NewsFeed(commands.Cog):
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
         self.url = "https://phx.unusualwhales.com/api/news/headlines-feed?limit=50"
-        self.headers = {}
+        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
 
@@ -58,8 +58,9 @@ class NewsFeed(commands.Cog):
             try:
                 async with self.session.get(self.url, headers=self.headers) as resp:
                     json_data = await resp.json()
+                    print(json_data)  # Add this line to check the fetched data
                     new_data = [item for item in json_data["data"] if item not in self.data and item["is_major"]]
-                    print(f'1')
+                    print(new_data)  # Add this line to see the filtered data
                     if new_data:
                         for guild in self.bot.guilds:
                             channels = await self.config.guild(guild).channels()
@@ -70,7 +71,6 @@ class NewsFeed(commands.Cog):
                                     embed.set_footer(text=item["source"])
                                     await channel.send(embed=embed)
                         self.data.extend(new_data)
-                        print(f'2')
                 await asyncio.sleep(5)
                 print(f'Refresh 5 sec')
             except Exception as e:
