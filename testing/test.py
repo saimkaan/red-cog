@@ -1,5 +1,6 @@
 from redbot.core import commands
 import datetime
+import discord
 
 class DailyMessage(commands.Cog):
     """A cog that posts a daily message to a Discord channel."""
