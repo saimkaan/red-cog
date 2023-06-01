@@ -41,7 +41,7 @@ class DailyMessage(commands.Cog):
             await ctx.send("Daily message task has already been started.")
         else:
             await self.config.guild(ctx.guild).days_remaining.set(30)
-            await self.daily_message_task(ctx)
+            self.bot.loop.create_task(self.daily_message_task(ctx))
             await ctx.send("Daily message task has been started.")
             self.task_started = True
 
@@ -77,7 +77,4 @@ class DailyMessage(commands.Cog):
                             days_remaining -= 1
                             await self.config.guild(ctx.guild).days_remaining.set(days_remaining)
             await asyncio.sleep(60)  # wait for a minute before checking again
-
-
-def setup(bot):
-    bot.add_cog(DailyMessage(bot))
+            print(now)
