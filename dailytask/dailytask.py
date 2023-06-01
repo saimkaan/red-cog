@@ -7,6 +7,7 @@ class DailyTask(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=12300001312)
         default_guild = {
+            "name": None,
             "channel": None,
             "message": None,
             "time": None,
@@ -47,43 +48,33 @@ class DailyTask(commands.Cog):
         pass
 
     @daily.command()
-    async def message(self, ctx, *, message: str):
-        await self.config.guild(ctx.guild).message.set(message)
-        await ctx.send("Message set.")
-
-    @daily.command()
-    async def channel(self, ctx, channel: discord.TextChannel):
-        await self.config.guild(ctx.guild).channel.set(channel.id)
-        await ctx.send("Channel set.")
-
-    @daily.command()
-    async def time(self, ctx, *, time: str):
+    async def task(self, ctx, name: str, message: str, channel: discord.TextChannel, days: int, *, time: str):
         try:
             datetime.strptime(time, '%H:%M')
         except ValueError:
             await ctx.send("Invalid time format. Please use HH:MM.")
             return
+        await self.config.guild(ctx.guild).name.set(name)
+        await self.config.guild(ctx.guild).message.set(message)
+        await self.config.guild(ctx.guild).channel.set(channel.id)
         await self.config.guild(ctx.guild).time.set(time)
-        await ctx.send("Time set.")
-
-    @daily.command()
-    async def days(self, ctx, days: int):
         await self.config.guild(ctx.guild).days.set(days)
-        await ctx.send("Days set.")
+        await ctx.send("Task set.")
 
     @daily.command()
     async def list(self, ctx):
+        name = await self.config.guild(ctx.guild).name()
         message = await self.config.guild(ctx.guild).message()
         channel_id = await self.config.guild(ctx.guild).channel()
         channel = ctx.guild.get_channel(channel_id)
         time_str = await self.config.guild(ctx.guild).time()
         days = await self.config.guild(ctx.guild).days()
 
-        if not all([message, channel, time_str, days]):
+        if not all([name, message, channel, time_str, days]):
             await ctx.send("Task not set up completely.")
             return
 
-        embed = discord.Embed(title="Current Task")
+        embed = discord.Embed(title=name)
         embed.add_field(name="Message", value=message)
         embed.add_field(name="Channel", value=channel.mention)
         embed.add_field(name="Time", value=time_str)
