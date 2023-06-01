@@ -8,8 +8,10 @@ class DailyMessage(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=198762736482)
-        self.config.register_global(channel=None, message=None)
+        self.config = Config.get_conf(self, identifier=198762736482, force_registration=True)
+        default_global = {"channel": None, "message": None}
+        self.config.register_global(**default_global)
+
 
     @commands.group()
     async def daily(self, ctx):
