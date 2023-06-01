@@ -43,20 +43,20 @@ class DailyTask(commands.Cog):
 
     @commands.group()
     @commands.guild_only()
-    async def mycog(self, ctx):
+    async def daily(self, ctx):
         pass
 
-    @dailytask.command()
+    @daily.command()
     async def message(self, ctx, *, message: str):
         await self.config.guild(ctx.guild).message.set(message)
         await ctx.send("Message set.")
 
-    @dailytask.command()
+    @daily.command()
     async def channel(self, ctx, channel: discord.TextChannel):
         await self.config.guild(ctx.guild).channel.set(channel.id)
         await ctx.send("Channel set.")
 
-    @dailytask.command()
+    @daily.command()
     async def time(self, ctx, *, time: str):
         try:
             datetime.strptime(time, '%H:%M')
@@ -66,12 +66,12 @@ class DailyTask(commands.Cog):
         await self.config.guild(ctx.guild).time.set(time)
         await ctx.send("Time set.")
 
-    @dailytask.command()
+    @daily.command()
     async def days(self, ctx, days: int):
         await self.config.guild(ctx.guild).days.set(days)
         await ctx.send("Days set.")
 
-    @dailytask.command()
+    @daily.command()
     async def list(self, ctx):
         message = await self.config.guild(ctx.guild).message()
         channel_id = await self.config.guild(ctx.guild).channel()
