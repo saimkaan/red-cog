@@ -5,7 +5,7 @@ import discord
 class DailyTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=123133030303)
+        self.config = Config.get_conf(self, identifier=12300001312)
         default_guild = {
             "channel": None,
             "message": None,
