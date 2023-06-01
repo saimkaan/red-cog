@@ -34,8 +34,8 @@ class DailyMessage(commands.Cog):
         await self.config.guild(ctx.guild).message.set(message)
         await ctx.send(f"Message set to {message}.")
 
-    @commands.command()
-    async def start_daily(self, ctx):
+    @daily.command()
+    async def start(self, ctx):
         """Start the daily message task."""
         if self.task_started:
             await ctx.send("Daily message task has already been started.")
@@ -45,8 +45,8 @@ class DailyMessage(commands.Cog):
             await ctx.send("Daily message task has been started.")
             self.task_started = True
 
-    @commands.command()
-    async def daily_list(self, ctx):
+    @daily.command()
+    async def list(self, ctx):
         """List all the daily messages along with their channel and message info."""
         async with self.config.guild(ctx.guild).all() as guild_config:
             channel_id = guild_config["channel"]
