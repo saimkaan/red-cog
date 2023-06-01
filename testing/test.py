@@ -10,8 +10,10 @@ class DailyMessage(commands.Cog):
         self.config = Config.get_conf(self, identifier=198292929292)  # Replace identifier with a unique identifier for your cog
         self.config.register_guild(
             channel=None,
-            message=None
+            message=None,
+            days_remaining=None
         )
+        self.task_started = False
 
     @commands.group()
     async def daily(self, ctx):
@@ -30,23 +32,46 @@ class DailyMessage(commands.Cog):
         await self.config.guild(ctx.guild).message.set(message)
         await ctx.send(f"Message set to {message}.")
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        """Schedule the daily message task when the bot is ready."""
-        await self.bot.wait_until_ready()
-        self.bot.loop.create_task(self.daily_message_task())
+    @commands.command()
+    async def start_daily(self, ctx):
+        """Start the daily message task."""
+        if self.task_started:
+            await ctx.send("Daily message task has already been started.")
+        else:
+            await self.config.guild(ctx.guild).days_remaining.set(30)
+            await self.daily_message_task(ctx)
+            await ctx.send("Daily message task has been started.")
+            self.task_started = True
 
-    async def daily_message_task(self):
+    @commands.command()
+    async def daily_list(self, ctx):
+        """List all the daily messages along with their channel and message info."""
+        async with self.config.guild(ctx.guild).all() as guild_config:
+            channel_id = guild_config["channel"]
+            message = guild_config["message"]
+        if channel_id and message:
+            channel = self.bot.get_channel(channel_id)
+            if channel:
+                embed = discord.Embed(title="Daily Message List", color=discord.Color.blue())
+                embed.add_field(name="Channel", value=channel.mention, inline=False)
+                embed.add_field(name="Message", value=message, inline=False)
+                await ctx.send(embed=embed)
+        else:
+            await ctx.send("No daily message has been set.")
+
+    async def daily_message_task(self, ctx):
         """A task that runs every day and posts the daily message."""
         while not self.bot.is_closed():
             now = datetime.datetime.utcnow()
             if now.hour == 9 and now.minute == 1:  # 12:01 PST
-                async with self.config.guild(self.bot.guilds[0]).all() as guild_config:
+                async with self.config.guild(ctx.guild).all() as guild_config:
                     channel_id = guild_config["channel"]
                     message = guild_config["message"]
-                    if channel_id and message:
+                    days_remaining = guild_config["days_remaining"]
+                    if channel_id and message and days_remaining > 0:
                         channel = self.bot.get_channel(channel_id)
                         if channel:
                             await channel.send(message)
+                            days_remaining -= 1
+                            await self.config.guild(ctx.guild).days_remaining.set(days_remaining)
             await asyncio.sleep(60)  # wait for a minute before checking again
-            print(now)
