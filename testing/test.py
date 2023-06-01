@@ -65,7 +65,7 @@ class DailyMessage(commands.Cog):
         """A task that runs every day and posts the daily message."""
         while not self.bot.is_closed():
             now = datetime.datetime.utcnow()
-            if now.hour == 9 and now.minute == 1:  # 12:01 PST
+            if now.hour == 9 and now.minute == 1:  # 12:01 UTC
                 async with self.config.guild(ctx.guild).all() as guild_config:
                     channel_id = guild_config["channel"]
                     message = guild_config["message"]
@@ -77,3 +77,7 @@ class DailyMessage(commands.Cog):
                             days_remaining -= 1
                             await self.config.guild(ctx.guild).days_remaining.set(days_remaining)
             await asyncio.sleep(60)  # wait for a minute before checking again
+
+
+def setup(bot):
+    bot.add_cog(DailyMessage(bot))
