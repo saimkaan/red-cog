@@ -2,10 +2,10 @@ from redbot.core import commands, Config
 from datetime import datetime, timedelta
 import discord
 
-class MyCog(commands.Cog):
+class DailyTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1234567890)
+        self.config = Config.get_conf(self, identifier=123133030303)
         default_guild = {
             "channel": None,
             "message": None,
@@ -46,17 +46,17 @@ class MyCog(commands.Cog):
     async def mycog(self, ctx):
         pass
 
-    @mycog.command()
+    @dailytask.command()
     async def message(self, ctx, *, message: str):
         await self.config.guild(ctx.guild).message.set(message)
         await ctx.send("Message set.")
 
-    @mycog.command()
+    @dailytask.command()
     async def channel(self, ctx, channel: discord.TextChannel):
         await self.config.guild(ctx.guild).channel.set(channel.id)
         await ctx.send("Channel set.")
 
-    @mycog.command()
+    @dailytask.command()
     async def time(self, ctx, *, time: str):
         try:
             datetime.strptime(time, '%H:%M')
@@ -66,12 +66,12 @@ class MyCog(commands.Cog):
         await self.config.guild(ctx.guild).time.set(time)
         await ctx.send("Time set.")
 
-    @mycog.command()
+    @dailytask.command()
     async def days(self, ctx, days: int):
         await self.config.guild(ctx.guild).days.set(days)
         await ctx.send("Days set.")
 
-    @mycog.command()
+    @dailytask.command()
     async def list(self, ctx):
         message = await self.config.guild(ctx.guild).message()
         channel_id = await self.config.guild(ctx.guild).channel()
