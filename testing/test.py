@@ -66,7 +66,6 @@ class DailyMessage(commands.Cog):
         """A task that runs every day and posts the daily message."""
         while not self.bot.is_closed():
             now = datetime.datetime.utcnow()
-            print(now)  # Print the current time to the console
             if now.hour == 7 and now.minute == 1:  # 12:01 UTC
                 async with self.config.guild(ctx.guild).all() as guild_config:
                     channel_id = guild_config["channel"]
