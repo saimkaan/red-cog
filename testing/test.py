@@ -16,6 +16,7 @@ class DailyMessage(commands.Cog):
             days_remaining=None
         )
         self.task_started = False
+        self.daily_message_task = None
 
     @commands.group()
     async def daily(self, ctx):
@@ -41,7 +42,7 @@ class DailyMessage(commands.Cog):
             await ctx.send("Daily message task has already been started.")
         else:
             await self.config.guild(ctx.guild).days_remaining.set(30)
-            self.bot.loop.create_task(self.daily_message_task(ctx))
+            self.daily_message_task = self.bot.loop.create_task(self._daily_message_task(ctx))
             await ctx.send("Daily message task has been started.")
             self.task_started = True
 
@@ -61,10 +62,11 @@ class DailyMessage(commands.Cog):
         else:
             await ctx.send("No daily message has been set.")
 
-    async def daily_message_task(self, ctx):
+    async def _daily_message_task(self, ctx):
         """A task that runs every day and posts the daily message."""
         while not self.bot.is_closed():
             now = datetime.datetime.utcnow()
+            print(now)  # Print the current time to the console
             if now.hour == 7 and now.minute == 1:  # 12:01 UTC
                 async with self.config.guild(ctx.guild).all() as guild_config:
                     channel_id = guild_config["channel"]
@@ -78,3 +80,8 @@ class DailyMessage(commands.Cog):
                             await self.config.guild(ctx.guild).days_remaining.set(days_remaining)
                             await asyncio.sleep(60)
             await asyncio.sleep(60)  # wait for a minute before checking again
+
+    def cog_unload(self):
+        """Cancel the daily message task when the cog is unloaded."""
+        if self.daily_message_task:
+            self.daily_message_task.cancel()
