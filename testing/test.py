@@ -77,7 +77,7 @@ class DailyMessage(commands.Cog):
                             await channel.send(message)
                             days_remaining -= 1
                             await self.config.guild(ctx.guild).days_remaining.set(days_remaining)
-                            await asyncio.sleep(60)
+            await asyncio.sleep(60)
 
     def cog_unload(self):
         """Cancel the daily message task when the cog is unloaded."""
