@@ -84,3 +84,14 @@ class DailyTask(commands.Cog):
         embed.add_field(name="Time", value=time_str)
         embed.add_field(name="Days", value=str(days))
         await ctx.send(embed=embed)
+        
+    @daily.command()
+    async def delete(self, ctx, name: str):
+        guild = ctx.guild
+        task_name = await self.config.guild(guild).name()
+
+        if task_name == name:
+            await self.config.guild(guild).clear()
+            await ctx.send(f"Task '{name}' has been deleted.")
+        else:
+            await ctx.send(f"No task with the name '{name}' found.")
