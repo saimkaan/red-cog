@@ -35,13 +35,10 @@ class DailyTask(commands.Cog):
                     continue
                 post_time = datetime.strptime(time_str, '%H:%M').time()
                 now = datetime.utcnow()
-                print(f"Current time: {now.time()}")
-                print(f"Post time: {post_time}")
                 if now.time() >= post_time:
                     days = await self.config.guild(guild).days()
                     if days is not None:
                         next_post_time = (now + timedelta(days=days)).replace(hour=post_time.hour, minute=post_time.minute)
-                        print(f"Next post time: {next_post_time}")
                         await discord.utils.sleep_until(next_post_time)
                         await channel.send(message)
             await asyncio.sleep(60)
