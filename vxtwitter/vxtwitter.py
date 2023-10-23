@@ -1,8 +1,5 @@
-from redbot.core import commands, Config
+from redbot.core import commands
 import re
-
-import re
-from discord.ext import commands
 
 class VxTwitter(commands.Cog):
     def __init__(self, bot):
