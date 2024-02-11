@@ -12,30 +12,24 @@ class VxTwitter(commands.Cog):
 
         # Twitter link replacement (unchanged)
         if "twitter.com" in message.content and "vxtwitter.com" not in message.content:
-            new_message = re.sub(r"(https?://)?(www\.)?twitter\.com/(\w+)/status/(\d+)", r"https://vxtwitter.com/\3/status/\4", message.content)
+            new_message = re.sub(r"(https?://)?(www\.)?twitter\.com/(.*)", r"https://vxtwitter.com/\3", message.content)
             await message.channel.send(f"{new_message} from: {message.author.mention}")
             await message.delete()
-
-        # TikTok link replacement (added)
-       # if "tiktok.com" in message.content and "vxtiktok.com" not in message.content:
-       #     new_message = re.sub(r"(https?://)?(www\.)?tiktok\.com/(@\w+)/video/(\w+)", r"https://vxtiktok.com/\3/video/\4", message.content)
-        #    await message.channel.send(f"{new_message} from: {message.author.mention}")
-         #   await message.delete()
             
         # TikTok link replacement (added)
         if "tiktok.com" in message.content and "vxtiktok.com" not in message.content:
-            new_message = re.sub(r"(https?://)?(www\.)?tiktok\.com/(\w+)", r"https://vxtiktok.com/\3", message.content)
+            new_message = re.sub(r"(https?://)?(www\.)?tiktok\.com/(.*)", r"https://vxtiktok.com/\3", message.content)
             await message.channel.send(f"{new_message} from: {message.author.mention}")
             await message.delete()
 
         # Existing code for x.com links (unchanged)
         if "x.com" in message.content and "fixvx.com" not in message.content:
-            new_message = re.sub(r"(https?://)?(www\.)?x\.com/(\w+)/status/(\d+)", r"https://fixvx.com/\3/status/\4", message.content)
+            new_message = re.sub(r"(https?://)?(www\.)?x\.com/(.*)", r"https://fixvx.com/\3", message.content)
             await message.channel.send(f"{new_message} from: {message.author.mention}")
             await message.delete()
             
         # Instagram link replacement
         if "instagram.com" in message.content and "ddinstagram.com" not in message.content:
-            new_message = re.sub(r"(https?://)?(www\.)?instagram\.com/(\w+)/(\w+)", r"https://www.ddinstagram.com/\3/\4", message.content)
+            new_message = re.sub(r"(https?://)?(www\.)?instagram\.com/(.*)", r"https://www.ddinstagram.com/\3", message.content)
             await message.channel.send(f"{new_message} from: {message.author.mention}")
             await message.delete()
