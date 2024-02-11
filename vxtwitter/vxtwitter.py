@@ -42,4 +42,4 @@ class VxTwitter(commands.Cog):
         if "instagram.com" in message.content and "ddinstagram.com" not in message.content:
             new_message = re.sub(r"(https?://)?(www\.)?instagram\.com/(.*)", r"https://www.ddinstagram.com/\3", message.content)
             await message.channel.send(f"{new_message} from: {message.author.mention}")
-            await message.delete(
+            await message.delete()
