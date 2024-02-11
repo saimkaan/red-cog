@@ -19,7 +19,7 @@ class VxTwitter(commands.Cog):
 
         # TikTok link replacement (added)
         if "tiktok.com" in message.content and "vxtiktok.com" not in message.content:
-            new_message = re.sub(r"(https?://)?(www\.)?tiktok\.com/(@\w+)/video/(\d+)", r"https://vxtiktok.com/\3/video/\4", message.content)
+            new_message = re.sub(r"(https?://)?(www\.)?tiktok\.com/(@\w+)/video/(\w+)", r"https://vxtiktok.com/\3/video/\4", message.content)
             if len(message.embeds) == 0:
                 await message.channel.send(f"{new_message} from: {message.author.mention}")
                 await message.delete()
