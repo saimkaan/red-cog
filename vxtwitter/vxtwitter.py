@@ -27,3 +27,9 @@ class VxTwitter(commands.Cog):
             new_message = re.sub(r"(https?://)?(www\.)?x\.com/(\w+)/status/(\d+)", r"https://fixvx.com/\3/status/\4", message.content)
             await message.channel.send(f"{new_message} from: {message.author.mention}")
             await message.delete()
+            
+        # Instagram link replacement
+        if "instagram.com" in message.content and "ddinstagram.com" not in message.content:
+            new_message = re.sub(r"(https?://)?(www\.)?instagram\.com/(\w+)/(\w+)/(\w+)", r"https://www.ddinstagram.com/\3/\4/\5", message.content)
+            await message.channel.send(f"{new_message} from: {message.author.mention}")
+            await message.delete()
