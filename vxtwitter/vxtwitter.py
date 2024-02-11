@@ -19,10 +19,10 @@ class VxTwitter(commands.Cog):
                 converted_link = re.sub(r"https?://twitter\.com/([^/]+)/status/(\d+)", r"https://d.fxtwitter.com/\1/status/\2", twitter_link)
                 await message.channel.send(f"Converted link: {converted_link} from: {message.author.mention}")
                 await message.delete()
-            else:
-                new_message = re.sub(r"(https?://)?(www\.)?twitter\.com/(.*)", r"https://vxtwitter.com/\3", message.content)
-                await message.channel.send(f"{new_message} from: {message.author.mention}")
-                await message.delete()
+        else if "twitter.com" in message.content and "vxtwitter.com" not in message.content:
+            new_message = re.sub(r"(https?://)?(www\.)?twitter\.com/(.*)", r"https://vxtwitter.com/\3", message.content)
+            await message.channel.send(f"{new_message} from: {message.author.mention}")
+            await message.delete()
                 
         # Twitter link replacement (unchanged)
         #if "twitter.com" in message.content and "vxtwitter.com" not in message.content:
