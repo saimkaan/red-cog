@@ -10,13 +10,13 @@ class VxTwitter(commands.Cog):
         if message.author == self.bot.user:
             return
             
-        # New command to convert Twitter video links (unchanged)
-        if "twitter.com" in message.content and "vxtwitter.com" not in message.content and message.content.startswith("!video"):
+        # New command to convert Twitter video links
+        if message.content.startswith("!video"):
             # Extract the Twitter video link
-            match = re.match(r"!video (https?://)?(www\.)?twitter\.com/(.*)", message.content)
+            match = re.match(r"!video (https?://twitter\.com/[^/]+/status/\d+)", message.content)
             if match:
                 twitter_link = match.group(1)
-                converted_link = re.sub(r"(https?://)?(www\.)?twitter\.com/(.*)", r"https://d.fxtwitter.com/\3", twitter_link)
+                converted_link = re.sub(r"https?://twitter\.com/([^/]+)/status/(\d+)", r"https://d.fxtwitter.com/\1/status/\2", twitter_link)
                 await message.channel.send(f"Converted link: {converted_link} from: {message.author.mention}")
                 await message.delete()
             else:
