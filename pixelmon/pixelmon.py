@@ -1,8 +1,8 @@
-from redbot.core import commands, Config, tasks
+from redbot.core import commands, Config
 import requests
-import discord
 import logging
 import threading
+import asyncio
 import time
 from datetime import datetime, timedelta
 
@@ -21,33 +21,25 @@ class PixelmonCog(commands.Cog):
         self.config = Config.get_conf(self, identifier=123456789)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
-        self.check_pixelmon_data.start()
+        self.bot.loop.create_task(self.periodic_task())
 
-    def cog_unload(self):
-        self.check_pixelmon_data.cancel()
+    async def periodic_task(self):
+        while True:
+            token_ids = self.fetch_reservoir_data()
+            if token_ids:
+                self.fetch_pixelmon_data_with_threads(token_ids)
+            await asyncio.sleep(30)  # Sleep for 30 seconds before the next iteration
 
-    @tasks.loop(seconds=30)
-    async def check_pixelmon_data(self):
-        token_ids = self.fetch_reservoir_data()
-        if token_ids:
-            self.fetch_pixelmon_data_with_threads(token_ids)
-
-    # Function to fetch data from Reservoir API and process token IDs
     def fetch_reservoir_data(self):
         try:
             response = requests.get(RESERVOIR_API_URL, headers=headers)
             data = response.json()
             if 'orders' in data:
-                token_ids = []
-                for order in data['orders']:
-                    token_id = order['criteria']['data']['token']['tokenId']
-                    token_ids.append(token_id)
-                return token_ids
+                return [order['criteria']['data']['token']['tokenId'] for order in data['orders']]
         except Exception as e:
-            logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
+            logging.error(f"Error fetching data from Reservoir API: {e}")
         return None
 
-    # Function to fetch data from Pixelmon API and create database
     def fetch_pixelmon_data(self, trainer_id):
         try:
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
@@ -57,25 +49,11 @@ class PixelmonCog(commands.Cog):
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
                     if relic['relicsType'] == 'silver' and relic['count'] > 0:
-                        return {
-                            'trainer_id': trainer_id,
-                            'relics_count': relic['count']
-                        }
+                        return {'trainer_id': trainer_id, 'relics_count': relic['count']}
         except Exception as e:
-            logging.error(f"Error occurred while fetching data from Pixelmon API: {e}")
+            logging.error(f"Error fetching data from Pixelmon API: {e}")
         return None
 
-    # Function to handle fetching Pixelmon data with threads
-    def fetch_pixelmon_data_with_threads(self, token_ids):
-        threads = []
-        for token_id in token_ids:
-            thread = threading.Thread(target=self.fetch_and_send_pixelmon_data, args=(token_id,))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
-
-    # Helper function to fetch and send Pixelmon data
     async def fetch_and_send_pixelmon_data(self, token_id):
         pixelmon_data = self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
