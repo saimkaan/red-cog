@@ -113,18 +113,18 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    def get_threshold_price(self):
-        try:
-            response = requests.get(self.url_floor_ask, headers=self.headers)
-            data = response.json()
-            if 'events' in data and data['events']:
-                floor_price = data['events'][0]['floorAsk']['price']['amount']['decimal']
-                # Add 20% to the floor price
-                threshold_price = floor_price * 1.2
-                return threshold_price
-        except Exception as e:
-            logging.error(f"Error occurred while fetching floor price: {e}")
-        return None
+    def filter_token_ids(self, token_ids, threshold_price):
+        # Filter token IDs based on price criteria
+        filtered_token_ids = []
+        for token_id, price in token_ids:
+            if price <= threshold_price * 1.2:  # 20% higher than the floor price for diamond relics
+                filtered_token_ids.append((token_id, price))
+            elif price <= threshold_price * 1.05:  # 10% higher than the floor price for gold relics
+                # Check if the relic type is gold
+                pixelmon_data = self.fetch_pixelmon_data(token_id)
+                if pixelmon_data and pixelmon_data['relics_type'] == 'gold':
+                    filtered_token_ids.append((token_id, price))
+        return filtered_token_ids
 
     def fetch_pixelmon_data_with_threads(self, token_ids):
         loop = asyncio.get_event_loop()
