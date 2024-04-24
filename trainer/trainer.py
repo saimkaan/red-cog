@@ -13,10 +13,11 @@ class Trainer(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.headers = {
             "accept": "*/*",
-            "x-api-key": "YOUR_API_KEY"
+            "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+        self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x32973908faee0bf825a343000fe412ebe56f802a&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
@@ -61,29 +62,37 @@ class Trainer(commands.Cog):
     async def fetch_data(self):
         while True:
             try:
-                async with self.session.get(self.url_reservoir, headers=self.headers) as response:
-                    data = await response.json()
-                    if 'orders' in data:
-                        for order in data['orders']:
-                            price_eth = order['price']['amount']['raw']
-                            price_eth_decimal = int(price_eth) / (10 ** 18)
-                            token_id = order['criteria']['data']['token']['tokenId']
-                            await self.check_and_post_message(token_id, price_eth_decimal)
+                # Fetch the floor price
+                async with self.session.get(self.url_floor_ask) as response:
+                    floor_data = await response.json()
+                    if 'events' in floor_data and floor_data['events']:
+                        floor_price_eth = floor_data['events'][0]['price']['amount']['raw']
+                        floor_price_eth_decimal = int(floor_price_eth) / (10 ** 18)
+                        # Fetch orders from reservoir API
+                        async with self.session.get(self.url_reservoir, headers=self.headers) as response:
+                            data = await response.json()
+                            if 'orders' in data:
+                                for order in data['orders']:
+                                    price_eth = order['price']['amount']['raw']
+                                    price_eth_decimal = int(price_eth) / (10 ** 18)
+                                    token_id = order['criteria']['data']['token']['tokenId']
+                                    threshold_price = await self.calculate_threshold_price(token_id)
+                                    # Compare threshold price with floor price
+                                    if threshold_price is not None and price_eth_decimal <= threshold_price <= floor_price_eth_decimal:
+                                        await self.check_and_post_message(token_id, price_eth_decimal)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
             await asyncio.sleep(15)  # Run every 15 seconds
 
     async def check_and_post_message(self, token_id, price):
-        threshold_price = await self.calculate_threshold_price(token_id)
-        if threshold_price is not None and price <= threshold_price:
-            trainer_data = await self.fetch_trainer_data(token_id)
-            if trainer_data:
-                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{token_id}"
-                for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        await channel.send(message)
+        trainer_data = await self.fetch_trainer_data(token_id)
+        if trainer_data:
+            message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{token_id}"
+            for guild in self.bot.guilds:
+                channels = await self.config.guild(guild).channels()
+                for channel_id in channels:
+                    channel = guild.get_channel(channel_id)
+                    await channel.send(message)
 
     async def calculate_threshold_price(self, token_id):
         try:
@@ -91,13 +100,15 @@ class Trainer(commands.Cog):
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
                     relics_response = data['result']['response']['relicsResponse']
-                    total_relics_count = sum(relic['count'] for relic in relics_response if relic['relicsType'] in ['gold', 'diamond'])
+                    total_gold_relics_count = sum(relic['count'] for relic in relics_response if relic['relicsType'] == 'gold')
+                    total_diamond_relics_count = sum(relic['count'] for relic in relics_response if relic['relicsType'] == 'diamond')
                     # Adjust threshold based on relics count
-                    threshold_price = total_relics_count * 0.15  # 0.15 increase for each relic
+                    threshold_price = total_diamond_relics_count * 0.15 + total_gold_relics_count * 0.05
                     return threshold_price
         except Exception as e:
             logging.error(f"Error occurred while calculating threshold price: {e}")
         return None
+
 
     async def fetch_trainer_data(self, token_id):
         try:
