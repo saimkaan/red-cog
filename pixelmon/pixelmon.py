@@ -126,14 +126,10 @@ class Pixelmon(commands.Cog):
         return None
 
     def fetch_pixelmon_data_with_threads(self, token_ids):
-        threads = []
+        loop = asyncio.get_event_loop()
         for token_id, _ in token_ids:
-            thread = threading.Thread(target=self.fetch_and_print_pixelmon_data, args=(token_id,))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
-
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
+    
     async def fetch_and_print_pixelmon_data(self, token_id):
         pixelmon_data = self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
