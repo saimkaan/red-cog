@@ -138,7 +138,7 @@ class Pixelmon(commands.Cog):
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 openSea_link = f"https://pro.opensea.io/nft/ethereum/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"Pixelmon data: {pixelmon_data}\n{openSea_link}"
+                message = f"@everyone Pixelmon data: {pixelmon_data}\n{openSea_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
@@ -150,6 +150,7 @@ class Pixelmon(commands.Cog):
                 pass
         else:
             pass
+
 
 
     def check_message_limit(self, token_id):
