@@ -75,7 +75,7 @@ class PixelmonCog(commands.Cog):
             thread.join()
 
     # Helper function to fetch and send Pixelmon data
-    def fetch_and_send_pixelmon_data(self, token_id):
+    async def fetch_and_send_pixelmon_data(self, token_id):
         pixelmon_data = self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
             if token_id not in self.printed_trainers or (datetime.now() - self.printed_trainers[token_id]) > timedelta(hours=24):
