@@ -1,5 +1,6 @@
-from redbot.core import commands, Config
+from redbot.core import commands, Config, tasks
 import requests
+import discord
 import logging
 import threading
 import time
