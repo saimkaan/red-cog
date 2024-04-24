@@ -1,4 +1,3 @@
-import aiohttp
 import asyncio
 import discord
 import logging
@@ -14,13 +13,9 @@ class Pixelmon(commands.Cog):
         self.config = Config.get_conf(self, identifier=188188188)
         default_guild = {"channels": [], "last_message_time": {}}
         self.config.register_guild(**default_guild)
-        self.session = aiohttp.ClientSession()
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=30"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.executor = ThreadPoolExecutor(max_workers=5)
-
-    def cog_unload(self):
-        asyncio.create_task(self.session.close())
 
     @commands.group()
     async def pixelmon(self, ctx):
@@ -34,21 +29,6 @@ class Pixelmon(commands.Cog):
                 await ctx.send(f"{channel.mention} set as a news feed channel.")
             else:
                 await ctx.send(f"{channel.mention} is already a news feed channel.")
-
-    @pixelmon.command()
-    async def removechannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id in channels:
-                channels.remove(channel.id)
-                await ctx.send(f"{channel.mention} removed as a news feed channel.")
-            else:
-                await ctx.send(f"{channel.mention} is not a news feed channel.")
-
-    @pixelmon.command()
-    async def listchannels(self, ctx):
-        channels = await self.config.guild(ctx.guild).channels()
-        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
-        await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
 
     async def fetch_data(self):
         while True:
@@ -64,7 +44,7 @@ class Pixelmon(commands.Cog):
     def fetch_pixelmon_data(self, token_ids):
         with self.executor as executor:
             future_to_token_id = {executor.submit(self.fetch_pixelmon_data_single, token_id): token_id for token_id in token_ids}
-            for future in concurrent.futures.as_completed(future_to_token_id):
+            for future in asyncio.as_completed(future_to_token_id):
                 token_id = future_to_token_id[future]
                 try:
                     pixelmon_data = future.result()
@@ -120,3 +100,6 @@ class Pixelmon(commands.Cog):
     def update_last_message_time(self, token_id):
         current_time = time.time()
         self.config.last_message_time.set_raw(token_id, value=current_time)
+
+def setup(bot):
+    bot.add_cog(Pixelmon(bot))
