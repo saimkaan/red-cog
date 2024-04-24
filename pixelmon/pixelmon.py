@@ -85,9 +85,9 @@ class Pixelmon(commands.Cog):
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
-                    if relic['relicsType'] == 'diamond' and relic['count'] > 0:
+                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
                         return {
-                            'trainer_id': trainer_id,
+                            'relics_type': relic['relicsType'],
                             'relics_count': relic['count']
                         }
         except Exception as e:
@@ -137,8 +137,8 @@ class Pixelmon(commands.Cog):
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
-                openSea_link = f"https://pro.opensea.io/nft/ethereum/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone Pixelmon data: {pixelmon_data}\n{openSea_link}"
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                message = f"@everyone Pixelmon data: {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
