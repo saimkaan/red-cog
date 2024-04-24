@@ -2,8 +2,11 @@ from redbot.core import commands, Config
 import aiohttp
 import asyncio
 import discord
+import datetime
+import pytz
 import requests
 import logging
+import threading
 import time
 
 class Pixelmon(commands.Cog):
@@ -103,7 +106,7 @@ class Pixelmon(commands.Cog):
                     # Convert to decimal ETH value
                     price_eth_decimal = int(price_eth) / (10 ** 18)
                     token_id = order['criteria']['data']['token']['tokenId']
-                    if price_eth_decimal >= threshold_price:
+                    if price_eth_decimal < threshold_price:
                         token_ids.append((token_id, price_eth_decimal))
                 return token_ids
         except Exception as e:
@@ -125,7 +128,7 @@ class Pixelmon(commands.Cog):
 
     def fetch_pixelmon_data_with_threads(self, token_ids):
         loop = asyncio.get_event_loop()
-        for token_id in token_ids:
+        for token_id, _ in token_ids:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
     
     async def fetch_and_print_pixelmon_data(self, token_id):
@@ -149,15 +152,16 @@ class Pixelmon(commands.Cog):
             pass
 
     def check_message_limit(self, token_id):
-        # Check if the pixelmon ID has exceeded the message limit (1 message per 24 hours)
+        # Check if the pixelmon ID has exceeded the message limit (2 messages per hour)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 86400:  # 86400 seconds = 24 hours
-            # Reset the message time if the time limit has elapsed
+        if current_time - last_message_time >= 3600:  # 3600 seconds = 1 hour
+            # Reset the message count if the time limit has elapsed
             self.last_message_time[token_id] = current_time
             return True
         else:
-            return False  # Return False to indicate message limit exceeded
+            # Check if the message count for the pixelmon ID exceeds 2
+            return self.last_message_time.get(f"{token_id}_count", 0) < 2
 
     def update_last_message_time(self, token_id):
         # Update the last message time for the pixelmon ID
