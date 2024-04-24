@@ -2,17 +2,14 @@ from redbot.core import commands, Config
 import aiohttp
 import asyncio
 import discord
-import datetime
-import pytz
 import requests
 import logging
-import threading
 import time
 
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=188188188)
+        self.config = Config.get_conf(self, identifier=19191919)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -22,7 +19,6 @@ class Pixelmon(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x32973908faee0bf825a343000fe412ebe56f802a&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
@@ -67,11 +63,9 @@ class Pixelmon(commands.Cog):
     async def fetch_data(self):
         while True:
             try:
-                threshold_price = self.get_threshold_price()
-                if threshold_price is not None:
-                    token_ids = self.fetch_reservoir_data(threshold_price)
-                    if token_ids:
-                        self.fetch_pixelmon_data_with_threads(token_ids)
+                token_ids = self.fetch_reservoir_data()
+                if token_ids:
+                    self.fetch_pixelmon_data_with_threads(token_ids)
                 await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
@@ -94,36 +88,18 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching data from Pixelmon API: {e}")
         return None
 
-    def fetch_reservoir_data(self, threshold_price):
+    def fetch_reservoir_data(self):
         try:
             response = requests.get(self.url_reservoir, headers=self.headers)
             data = response.json()
             if 'orders' in data:
                 token_ids = []
                 for order in data['orders']:
-                    # Parse price data
-                    price_eth = order['price']['amount']['raw']
-                    # Convert to decimal ETH value
-                    price_eth_decimal = int(price_eth) / (10 ** 18)
                     token_id = order['criteria']['data']['token']['tokenId']
-                    if price_eth_decimal < threshold_price:
-                        token_ids.append((token_id, price_eth_decimal))
+                    token_ids.append(token_id)
                 return token_ids
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
-        return None
-
-    def get_threshold_price(self):
-        try:
-            response = requests.get(self.url_floor_ask, headers=self.headers)
-            data = response.json()
-            if 'events' in data and data['events']:
-                floor_price = data['events'][0]['floorAsk']['price']['amount']['decimal']
-                # Add 20% to the floor price
-                threshold_price = floor_price * 1.2
-                return threshold_price
-        except Exception as e:
-            logging.error(f"Error occurred while fetching floor price: {e}")
         return None
 
     def fetch_pixelmon_data_with_threads(self, token_ids):
@@ -152,16 +128,15 @@ class Pixelmon(commands.Cog):
             pass
 
     def check_message_limit(self, token_id):
-        # Check if the pixelmon ID has exceeded the message limit (2 messages per hour)
+        # Check if the pixelmon ID has exceeded the message limit (1 message per 24 hours)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 3600:  # 3600 seconds = 1 hour
-            # Reset the message count if the time limit has elapsed
+        if current_time - last_message_time >= 86400:  # 86400 seconds = 24 hours
+            # Reset the message time if the time limit has elapsed
             self.last_message_time[token_id] = current_time
             return True
         else:
-            # Check if the message count for the pixelmon ID exceeds 2
-            return self.last_message_time.get(f"{token_id}_count", 0) < 2
+            return False  # Return False to indicate message limit exceeded
 
     def update_last_message_time(self, token_id):
         # Update the last message time for the pixelmon ID
