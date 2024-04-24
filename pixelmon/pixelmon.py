@@ -1,19 +1,17 @@
-from redbot.core import commands, Config
-import aiohttp
 import asyncio
-import discord
 import datetime
-import pytz
-import requests
 import logging
 import threading
-import time
+import aiohttp
+import discord
+from redbot.core import commands, Config
+import requests
 
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=188188188)
-        default_guild = {"channels": []}
+        default_guild = {"channels": [], "cooldowns": {}}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
         self.headers = {
@@ -25,43 +23,6 @@ class Pixelmon(commands.Cog):
         self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x8a3749936e723325c6b645a0901470cd9e790b94&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
-
-    def cog_unload(self):
-        if self.task:
-            self.task.cancel()
-            self.task = None
-        asyncio.create_task(self.session.close())
-
-    @commands.group()
-    async def pixelmon(self, ctx):
-        pass
-
-    @pixelmon.command()
-    async def setchannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id in channels:
-                await ctx.send(f"{channel.mention} is already a news feed channel.")
-                return
-            channels.append(channel.id)
-            await ctx.send(f"{channel.mention} set as a news feed channel.")
-
-    @pixelmon.command()
-    async def removechannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id not in channels:
-                await ctx.send(f"{channel.mention} is not a news feed channel.")
-                return
-            channels.remove(channel.id)
-            await ctx.send(f"{channel.mention} removed as a news feed channel.")
-
-    @pixelmon.command()
-    async def listchannels(self, ctx):
-        channels = await self.config.guild(ctx.guild).channels()
-        if not channels:
-            await ctx.send("No news feed channels set.")
-            return
-        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
-        await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
 
     async def fetch_data(self):
         while True:
@@ -75,6 +36,39 @@ class Pixelmon(commands.Cog):
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
+
+    def fetch_pixelmon_data_with_threads(self, token_ids):
+        loop = asyncio.get_event_loop()
+        for token_id, _ in token_ids:
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
+
+    async def fetch_and_print_pixelmon_data(self, token_id):
+        trainer_id = str(token_id)
+        if await self.check_cooldown(trainer_id):
+            pixelmon_data = self.fetch_pixelmon_data(token_id)
+            if pixelmon_data:
+                message = f"Pixelmon data: {pixelmon_data}"
+                for guild in self.bot.guilds:
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        await channel.send(message)
+                await self.update_cooldown(trainer_id)
+            else:
+                print(f"No Pixelmon data found for token ID: {token_id}")
+
+    async def check_cooldown(self, trainer_id):
+        cooldowns = await self.config.guild(self.bot.guild).cooldowns()
+        if trainer_id in cooldowns:
+            last_sent_time = cooldowns[trainer_id]
+            if datetime.datetime.now() - last_sent_time < datetime.timedelta(hours=2):
+                return False
+        return True
+
+    async def update_cooldown(self, trainer_id):
+        cooldowns = await self.config.guild(self.bot.guild).cooldowns()
+        cooldowns[trainer_id] = datetime.datetime.now()
+        await self.config.guild(self.bot.guild).cooldowns.set(cooldowns)
 
     def fetch_pixelmon_data(self, trainer_id):
         try:
@@ -125,25 +119,39 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching floor price: {e}")
         return None
 
-    def fetch_pixelmon_data_with_threads(self, token_ids):
-        loop = asyncio.get_event_loop()
-        for token_id, _ in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
-    
-    async def fetch_and_print_pixelmon_data(self, token_id):
-        pixelmon_data = self.fetch_pixelmon_data(token_id)
-        if pixelmon_data:
-            message = f"Pixelmon data: {pixelmon_data}"
-            for guild in self.bot.guilds:
-                channels = await self.config.guild(guild).channels()
-                for channel_id in channels:
-                    channel = guild.get_channel(channel_id)
-                    await channel.send(message)
-        else:
-            print(f"No Pixelmon data found for token ID: {token_id}")
-
     def cog_unload(self):
         if self.task:
             self.task.cancel()
             self.task = None
         asyncio.create_task(self.session.close())
+
+    @commands.group()
+    async def pixelmon(self, ctx):
+        pass
+
+    @pixelmon.command()
+    async def setchannel(self, ctx, channel: discord.TextChannel):
+        async with self.config.guild(ctx.guild).channels() as channels:
+            if channel.id in channels:
+                await ctx.send(f"{channel.mention} is already a news feed channel.")
+                return
+            channels.append(channel.id)
+            await ctx.send(f"{channel.mention} set as a news feed channel.")
+
+    @pixelmon.command()
+    async def removechannel(self, ctx, channel: discord.TextChannel):
+        async with self.config.guild(ctx.guild).channels() as channels:
+            if channel.id not in channels:
+                await ctx.send(f"{channel.mention} is not a news feed channel.")
+                return
+            channels.remove(channel.id)
+            await ctx.send(f"{channel.mention} removed as a news feed channel.")
+
+    @pixelmon.command()
+    async def listchannels(self, ctx):
+        channels = await self.config.guild(ctx.guild).channels()
+        if not channels:
+            await ctx.send("No news feed channels set.")
+            return
+        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
+        await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
