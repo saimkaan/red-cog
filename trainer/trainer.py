@@ -157,13 +157,13 @@ class Trainer(commands.Cog):
         # Check if the trainer ID has exceeded the message limit (2 messages per hour)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 3600:  # 3600 seconds = 1 hour
+        if current_time - last_message_time >= 43200:  # 3600 seconds = 1 hour
             # Reset the message count if the time limit has elapsed
             self.last_message_time[token_id] = current_time
             return True
         else:
             # Check if the message count for the trainer ID exceeds 2
-            return self.last_message_time.get(f"{token_id}_count", 0) < 2
+            return self.last_message_time.get(f"{token_id}_count", 0) < 1
 
     def update_last_message_time(self, token_id):
         # Update the last message time for the trainer ID
