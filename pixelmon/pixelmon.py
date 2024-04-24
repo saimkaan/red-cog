@@ -62,16 +62,10 @@ class Pixelmon(commands.Cog):
 
     async def fetch_data(self):
         while True:
-            try:
-                threshold_price = self.get_threshold_price()
-                if threshold_price is not None:
-                    token_ids = self.fetch_reservoir_data(threshold_price)
-                    if token_ids:
-                        self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(30)  # Run every 30 seconds
-            except Exception as e:
-                logging.error(f"Error occurred while fetching data: {e}")
-                await asyncio.sleep(60)
+            token_ids = self.fetch_reservoir_data()
+            if token_ids:
+                self.fetch_pixelmon_data_with_threads(token_ids)
+            await asyncio.sleep(30)  # Run every 30 seconds
 
     def fetch_pixelmon_data(self, pixelmon_id):
         try:
