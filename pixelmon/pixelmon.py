@@ -2,6 +2,7 @@ from redbot.core import commands, Config
 import requests
 import logging
 import threading
+import discord
 import asyncio
 import time
 from datetime import datetime, timedelta
@@ -14,7 +15,7 @@ headers = {
     "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
 }
 
-class PixelmonCog(commands.Cog):
+class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.printed_trainers = {}
@@ -22,6 +23,16 @@ class PixelmonCog(commands.Cog):
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.bot.loop.create_task(self.periodic_task())
+    
+    def cog_unload(self):
+        if self.task:
+            self.task.cancel()
+            self.task = None
+        asyncio.create_task(self.session.close())
+    
+    @commands.group()
+    async def trainer(self, ctx):
+        pass
 
     async def periodic_task(self):
         while True:
@@ -65,7 +76,7 @@ class PixelmonCog(commands.Cog):
                         await channel.send(f"Pixelmon data: {pixelmon_data}")
                 self.printed_trainers[token_id] = datetime.now()
 
-    @commands.command()
+    @trainer.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
