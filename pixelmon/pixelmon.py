@@ -1,5 +1,5 @@
 import threading
-import time
+import asyncio
 from datetime import datetime, timedelta
 import logging
 import requests
@@ -19,15 +19,16 @@ headers = {
 printed_pixelmons = {}
 
 class Pixelmon(commands.Cog):
-    def __init__(self, bot):
+    async def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=188188188)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.last_message_time = {}
 
-        # Start the main loop in a separate thread
-        threading.Thread(target=self.main_loop).start()
+        # Start the main loop
+        await self.main_loop()
+
 
     def cog_unload(self):
         pass  # No cleanup required for now
@@ -37,7 +38,8 @@ class Pixelmon(commands.Cog):
             token_ids = self.fetch_reservoir_data()
             if token_ids:
                 self.fetch_pixelmon_data_with_threads(token_ids)
-            time.sleep(30)  # Sleep for 30 seconds before the next iteration
+            await asyncio.sleep(30)  # Use asyncio.sleep instead of time.sleep
+
 
     def fetch_reservoir_data(self):
         try:
