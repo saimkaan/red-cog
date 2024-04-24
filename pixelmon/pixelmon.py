@@ -120,6 +120,3 @@ class Pixelmon(commands.Cog):
     def update_last_message_time(self, token_id):
         current_time = time.time()
         self.config.last_message_time.set_raw(token_id, value=current_time)
-
-def setup(bot):
-    bot.add_cog(Pixelmon(bot))
