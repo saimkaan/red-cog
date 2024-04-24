@@ -25,6 +25,7 @@ class Pixelmon(commands.Cog):
         self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x8a3749936e723325c6b645a0901470cd9e790b94&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
+        self.last_message_time = {}
 
     def cog_unload(self):
         if self.task:
@@ -133,14 +134,41 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id):
         pixelmon_data = self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
-            message = f"Pixelmon data: {pixelmon_data}"
-            for guild in self.bot.guilds:
-                channels = await self.config.guild(guild).channels()
-                for channel_id in channels:
-                    channel = guild.get_channel(channel_id)
-                    await channel.send(message)
+            # Check if the trainer ID has exceeded the message limit
+            if self.check_message_limit(token_id):
+                message = f"Pixelmon data: {pixelmon_data}"
+                for guild in self.bot.guilds:
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        await channel.send(message)
+                # Update the last message time for the trainer ID
+                self.update_last_message_time(token_id)
+            else:
+                #print(f"Message limit exceeded for trainer ID: {token_id}. Skipping.")
+                pass
         else:
-            print(f"No Pixelmon data found for token ID: {token_id}")
+            #print(f"No Pixelmon data found for token ID: {token_id}")
+            pass
+
+    def check_message_limit(self, token_id):
+        # Check if the trainer ID has exceeded the message limit (5 messages per hour)
+        current_time = time.time()
+        last_message_time = self.last_message_time.get(token_id, 0)
+        if current_time - last_message_time >= 3600:  # 3600 seconds = 1 hour
+            # Reset the message count if the time limit has elapsed
+            self.last_message_time[token_id] = current_time
+            return True
+        else:
+            # Check if the message count for the trainer ID exceeds 5
+            return self.last_message_time.get(f"{token_id}_count", 0) < 5
+
+    def update_last_message_time(self, token_id):
+        # Update the last message time for the trainer ID
+        current_time = time.time()
+        self.last_message_time[token_id] = current_time
+        # Increment the message count for the trainer ID
+        self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
 
     def cog_unload(self):
         if self.task:
