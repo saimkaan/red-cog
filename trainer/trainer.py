@@ -17,7 +17,7 @@ class Trainer(commands.Cog):
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
@@ -113,7 +113,7 @@ class Trainer(commands.Cog):
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
-                blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
