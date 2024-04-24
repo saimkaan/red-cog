@@ -9,7 +9,7 @@ import logging
 import threading
 import time
 
-class Pixelmon(commands.Cog):
+class Trainer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=18818818818)
@@ -21,7 +21,7 @@ class Pixelmon(commands.Cog):
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
-        self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+        self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x8a3749936e723325c6b645a0901470cd9e790b94&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
@@ -34,10 +34,10 @@ class Pixelmon(commands.Cog):
         asyncio.create_task(self.session.close())
 
     @commands.group()
-    async def pixelmon(self, ctx):
+    async def trainer(self, ctx):
         pass
 
-    @pixelmon.command()
+    @trainer.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
@@ -46,7 +46,7 @@ class Pixelmon(commands.Cog):
             channels.append(channel.id)
             await ctx.send(f"{channel.mention} set as a news feed channel.")
 
-    @pixelmon.command()
+    @trainer.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id not in channels:
@@ -55,7 +55,7 @@ class Pixelmon(commands.Cog):
             channels.remove(channel.id)
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
 
-    @pixelmon.command()
+    @trainer.command()
     async def listchannels(self, ctx):
         channels = await self.config.guild(ctx.guild).channels()
         if not channels:
@@ -71,16 +71,16 @@ class Pixelmon(commands.Cog):
                 if threshold_price is not None:
                     token_ids = self.fetch_reservoir_data(threshold_price)
                     if token_ids:
-                        self.fetch_pixelmon_data_with_threads(token_ids)
+                        self.fetch_trainer_data_with_threads(token_ids)
                 await asyncio.sleep(15)  # Run every 15 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
 
-    def fetch_pixelmon_data(self, trainer_id):
+    def fetch_trainer_data(self, trainer_id):
         try:
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
-            response = requests.post(self.url_pixelmon, json=payload)
+            response = requests.post(self.url_trainer, json=payload)
             data = response.json()
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
@@ -91,7 +91,7 @@ class Pixelmon(commands.Cog):
                             'relics_count': relic['count']
                         }
         except Exception as e:
-            logging.error(f"Error occurred while fetching data from Pixelmon API: {e}")
+            logging.error(f"Error occurred while fetching data from Trainer API: {e}")
         return None
 
     def fetch_reservoir_data(self, threshold_price):
@@ -126,19 +126,19 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching floor price: {e}")
         return None
 
-    def fetch_pixelmon_data_with_threads(self, token_ids):
+    def fetch_trainer_data_with_threads(self, token_ids):
         loop = asyncio.get_event_loop()
         for token_id, _ in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
     
-    async def fetch_and_print_pixelmon_data(self, token_id):
-        pixelmon_data = self.fetch_pixelmon_data(token_id)
-        if pixelmon_data:
+    async def fetch_and_print_trainer_data(self, token_id):
+        trainer_data = self.fetch_trainer_data(token_id)
+        if trainer_data:
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
+                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
