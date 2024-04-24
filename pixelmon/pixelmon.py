@@ -2,11 +2,8 @@ from redbot.core import commands, Config
 import aiohttp
 import asyncio
 import discord
-import datetime
-import pytz
 import requests
 import logging
-import threading
 import time
 
 class Pixelmon(commands.Cog):
