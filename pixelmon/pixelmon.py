@@ -85,7 +85,7 @@ class Pixelmon(commands.Cog):
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
-                    if relic['relicsType'] in ['wood', 'gold', 'diamond'] and relic['count'] > 0:
+                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
                         return {
                             'relics_type': relic['relicsType'],
                             'relics_count': relic['count']
@@ -138,7 +138,7 @@ class Pixelmon(commands.Cog):
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone Pixelmon data: {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
+                message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
