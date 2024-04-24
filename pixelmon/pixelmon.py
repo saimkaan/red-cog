@@ -64,7 +64,7 @@ class Pixelmon(commands.Cog):
         while True:
             token_ids = self.fetch_reservoir_data()
             if token_ids:
-                self.fetch_pixelmon_data_with_threads(token_ids)
+                await self.fetch_pixelmon_data_with_threads(token_ids)
             await asyncio.sleep(30)  # Run every 30 seconds
 
     def fetch_pixelmon_data(self, pixelmon_id):
@@ -98,10 +98,12 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    def fetch_pixelmon_data_with_threads(self, token_ids):
-        loop = asyncio.get_event_loop()
+    async def fetch_pixelmon_data_with_threads(self, token_ids):
+        tasks = []
         for token_id in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop).result()
+            task = self.fetch_and_print_pixelmon_data(token_id)
+            tasks.append(task)
+        await asyncio.gather(*tasks)
 
     
     async def fetch_and_print_pixelmon_data(self, token_id):
