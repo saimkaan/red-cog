@@ -20,9 +20,9 @@ class Pixelmon(commands.Cog):
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x8a3749936e723325c6b645a0901470cd9e790b94&limit=1"
+        self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x32973908faee0bf825a343000fe412ebe56f802a&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
@@ -77,9 +77,9 @@ class Pixelmon(commands.Cog):
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
 
-    def fetch_pixelmon_data(self, trainer_id):
+    def fetch_pixelmon_data(self, pixelmon_id):
         try:
-            payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
+            payload = {'nftType': 'pixelmon', 'tokenId': str(pixelmon_id)}
             response = requests.post(self.url_pixelmon, json=payload)
             data = response.json()
             if 'result' in data and 'response' in data['result']:
@@ -134,17 +134,17 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id):
         pixelmon_data = self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
-            # Check if the trainer ID has exceeded the message limit
+            # Check if the pixelmon ID has exceeded the message limit
             if self.check_message_limit(token_id):
-                # Construct the OpenSea link with the trainer ID
-                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                # Construct the OpenSea link with the pixelmon ID
+                blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
                 message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
                         channel = guild.get_channel(channel_id)
                         await channel.send(message)
-                # Update the last message time for the trainer ID
+                # Update the last message time for the pixelmon ID
                 self.update_last_message_time(token_id)
             else:
                 pass
@@ -154,7 +154,7 @@ class Pixelmon(commands.Cog):
 
 
     def check_message_limit(self, token_id):
-        # Check if the trainer ID has exceeded the message limit (2 messages per hour)
+        # Check if the pixelmon ID has exceeded the message limit (2 messages per hour)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
         if current_time - last_message_time >= 3600:  # 3600 seconds = 1 hour
@@ -162,14 +162,14 @@ class Pixelmon(commands.Cog):
             self.last_message_time[token_id] = current_time
             return True
         else:
-            # Check if the message count for the trainer ID exceeds 2
+            # Check if the message count for the pixelmon ID exceeds 2
             return self.last_message_time.get(f"{token_id}_count", 0) < 2
 
     def update_last_message_time(self, token_id):
-        # Update the last message time for the trainer ID
+        # Update the last message time for the pixelmon ID
         current_time = time.time()
         self.last_message_time[token_id] = current_time
-        # Increment the message count for the trainer ID
+        # Increment the message count for the pixelmon ID
         self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
 
     def cog_unload(self):
