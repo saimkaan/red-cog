@@ -85,7 +85,7 @@ class Pixelmon(commands.Cog):
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
-                    if relic['relicsType'] == 'silver' and relic['count'] > 0:
+                    if relic['relicsType'] == 'diamond' and relic['count'] > 0:
                         return {
                             'trainer_id': trainer_id,
                             'relics_count': relic['count']
