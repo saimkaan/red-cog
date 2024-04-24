@@ -2,11 +2,8 @@ from redbot.core import commands, Config
 import aiohttp
 import asyncio
 import discord
-import datetime
-import pytz
-import requests
 import logging
-import threading
+import requests
 import time
 
 class Pixelmon(commands.Cog):
@@ -22,7 +19,6 @@ class Pixelmon(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        self.url_floor_ask = "https://api.reservoir.tools/events/collections/floor-ask/v2?collection=0x32973908faee0bf825a343000fe412ebe56f802a&limit=1"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
@@ -67,15 +63,41 @@ class Pixelmon(commands.Cog):
     async def fetch_data(self):
         while True:
             try:
-                threshold_price = self.get_threshold_price()
-                if threshold_price is not None:
-                    token_ids = self.fetch_reservoir_data(threshold_price)
-                    if token_ids:
-                        self.fetch_pixelmon_data_with_threads(token_ids)
+                token_ids = self.fetch_reservoir_data()  # Fetch all listings without the threshold filter
+                if token_ids:
+                    self.fetch_pixelmon_data_with_threads(token_ids)
                 await asyncio.sleep(15)  # Run every 15 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
+
+    def fetch_reservoir_data(self):
+        try:
+            response = requests.get(self.url_reservoir, headers=self.headers)
+            data = response.json()
+            if 'orders' in data:
+                token_ids = []
+                for order in data['orders']:
+                    token_id = order['criteria']['data']['token']['tokenId']
+                    token_ids.append(token_id)
+                return token_ids
+        except Exception as e:
+            logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
+        return None
+
+    async def fetch_and_print_pixelmon_data(self, token_id):
+        pixelmon_data = self.fetch_pixelmon_data(token_id)
+        if pixelmon_data:
+            # Construct the OpenSea link with the pixelmon ID
+            blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
+            message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
+            for guild in self.bot.guilds:
+                channels = await self.config.guild(guild).channels()
+                for channel_id in channels:
+                    channel = guild.get_channel(channel_id)
+                    await channel.send(message)
+        else:
+            pass
 
     def fetch_pixelmon_data(self, pixelmon_id):
         try:
@@ -94,64 +116,16 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching data from Pixelmon API: {e}")
         return None
 
-    def fetch_reservoir_data(self, threshold_price):
-        try:
-            response = requests.get(self.url_reservoir, headers=self.headers)
-            data = response.json()
-            if 'orders' in data:
-                token_ids = []
-                for order in data['orders']:
-                    # Parse price data
-                    price_eth = order['price']['amount']['raw']
-                    # Convert to decimal ETH value
-                    price_eth_decimal = int(price_eth) / (10 ** 18)
-                    token_id = order['criteria']['data']['token']['tokenId']
-                    if price_eth_decimal < threshold_price:
-                        token_ids.append((token_id, price_eth_decimal))
-                return token_ids
-        except Exception as e:
-            logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
-        return None
-
-    def filter_token_ids(self, token_ids, threshold_price):
-        # Filter token IDs based on price criteria
-        filtered_token_ids = []
-        for token_id, price in token_ids:
-            if price <= threshold_price * 1.2:  # 20% higher than the floor price for diamond relics
-                filtered_token_ids.append((token_id, price))
-            elif price <= threshold_price * 1.05:  # 10% higher than the floor price for gold relics
-                # Check if the relic type is gold
-                pixelmon_data = self.fetch_pixelmon_data(token_id)
-                if pixelmon_data and pixelmon_data['relics_type'] == 'gold':
-                    filtered_token_ids.append((token_id, price))
-        return filtered_token_ids
-
     def fetch_pixelmon_data_with_threads(self, token_ids):
         loop = asyncio.get_event_loop()
-        for token_id, _ in token_ids:
+        for token_id in token_ids:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
-    
-    async def fetch_and_print_pixelmon_data(self, token_id):
-        pixelmon_data = self.fetch_pixelmon_data(token_id)
-        if pixelmon_data:
-            # Check if the pixelmon ID has exceeded the message limit
-            if self.check_message_limit(token_id):
-                # Construct the OpenSea link with the pixelmon ID
-                blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
-                message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
-                for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        await channel.send(message)
-                # Update the last message time for the pixelmon ID
-                self.update_last_message_time(token_id)
-            else:
-                pass
-        else:
-            pass
 
-
+    def cog_unload(self):
+        if self.task:
+            self.task.cancel()
+            self.task = None
+        asyncio.create_task(self.session.close())
 
     def check_message_limit(self, token_id):
         # Check if the pixelmon ID has exceeded the message limit (2 messages per hour)
@@ -171,9 +145,3 @@ class Pixelmon(commands.Cog):
         self.last_message_time[token_id] = current_time
         # Increment the message count for the pixelmon ID
         self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
-
-    def cog_unload(self):
-        if self.task:
-            self.task.cancel()
-            self.task = None
-        asyncio.create_task(self.session.close())
