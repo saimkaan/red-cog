@@ -136,7 +136,9 @@ class Pixelmon(commands.Cog):
         if pixelmon_data:
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
-                message = f"Pixelmon data: {pixelmon_data}"
+                # Construct the OpenSea link with the trainer ID
+                openSea_link = f"https://pro.opensea.io/nft/ethereum/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                message = f"Pixelmon data: {pixelmon_data}\n{openSea_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
@@ -145,11 +147,10 @@ class Pixelmon(commands.Cog):
                 # Update the last message time for the trainer ID
                 self.update_last_message_time(token_id)
             else:
-                #print(f"Message limit exceeded for trainer ID: {token_id}. Skipping.")
                 pass
         else:
-            #print(f"No Pixelmon data found for token ID: {token_id}")
             pass
+
 
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (5 messages per hour)
