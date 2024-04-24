@@ -106,7 +106,7 @@ class Pixelmon(commands.Cog):
                     # Convert to decimal ETH value
                     price_eth_decimal = int(price_eth) / (10 ** 18)
                     token_id = order['criteria']['data']['token']['tokenId']
-                    if price_eth_decimal < threshold_price:
+                    if price_eth_decimal > threshold_price:
                         token_ids.append((token_id, price_eth_decimal))
                 return token_ids
         except Exception as e:
