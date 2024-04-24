@@ -12,7 +12,7 @@ import time
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1231231337)
+        self.config = Config.get_conf(self, identifier=188188188)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -151,6 +151,3 @@ class Pixelmon(commands.Cog):
             self.task.cancel()
             self.task = None
         asyncio.create_task(self.session.close())
-
-def setup(bot):
-    bot.add_cog(Pixelmon(bot))
