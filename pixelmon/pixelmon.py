@@ -11,7 +11,7 @@ from redbot.core import commands, Config
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=188188188)
+        self.config = Config.get_conf(self, identifier=10000003332)
         default_guild = {"channels": [], "last_message_time": {}}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
