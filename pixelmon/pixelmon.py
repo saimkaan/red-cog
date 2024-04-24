@@ -163,7 +163,7 @@ class Pixelmon(commands.Cog):
             return True
         else:
             # Check if the message count for the trainer ID exceeds 2
-            return self.last_message_time.get(f"{token_id}_count", 0) < 2
+            return self.last_message_time.get(f"{token_id}_count", 0) < 1
 
     def update_last_message_time(self, token_id):
         # Update the last message time for the trainer ID
