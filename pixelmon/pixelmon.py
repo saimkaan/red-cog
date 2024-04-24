@@ -7,7 +7,7 @@ import asyncio
 import time
 from datetime import datetime, timedelta
 
-RESERVOIR_API_URL = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
+RESERVOIR_API_URL = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
 PIXELMON_API_URL = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
 
 headers = {
@@ -51,16 +51,16 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error fetching data from Reservoir API: {e}")
         return None
 
-    def fetch_pixelmon_data(self, trainer_id):
+    def fetch_pixelmon_data(self, pixelmon_id):
         try:
-            payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
+            payload = {'nftType': 'pixelmon', 'tokenId': str(trainer_id)}
             response = requests.post(PIXELMON_API_URL, json=payload)
             data = response.json()
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
                     if relic['relicsType'] == 'silver' and relic['count'] > 0:
-                        return {'trainer_id': trainer_id, 'relics_count': relic['count']}
+                        return {'pixelmon_id': pixelmon_id, 'relics_count': relic['count']}
         except Exception as e:
             logging.error(f"Error fetching data from Pixelmon API: {e}")
         return None
