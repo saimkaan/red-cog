@@ -31,7 +31,7 @@ class Pixelmon(commands.Cog):
         asyncio.create_task(self.session.close())
     
     @commands.group()
-    async def trainer(self, ctx):
+    async def pixelmon(self, ctx):
         pass
 
     async def periodic_task(self):
@@ -76,7 +76,7 @@ class Pixelmon(commands.Cog):
                         await channel.send(f"Pixelmon data: {pixelmon_data}")
                 self.printed_trainers[token_id] = datetime.now()
 
-    @trainer.command()
+    @pixelmon.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
