@@ -63,13 +63,14 @@ class Trainer(commands.Cog):
     async def fetch_data(self):
         while True:
             try:
-                token_ids = self.fetch_reservoir_data()
+                token_ids = await self.fetch_reservoir_data()  # Await the asynchronous method
                 if token_ids:
                     await self.fetch_trainer_data_with_tasks(token_ids)
                 await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
+
 
 
     async def fetch_trainer_data(self, trainer_id):
