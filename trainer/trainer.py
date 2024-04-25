@@ -94,42 +94,38 @@ class Trainer(commands.Cog):
             response = requests.get(self.url_reservoir, headers=self.headers)
             data = response.json()
             if 'orders' in data:
-                token_ids = []
+                token_data = []
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
-                    price_decimal = order['price']['amount']['decimal']
-                    token_ids.append((token_id, price_decimal))
-                return token_ids
+                    decimal_value = order['price']['amount']['decimal']
+                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value})
+                return token_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    def fetch_trainer_data_with_threads(self, token_ids):
+    def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
-        for token_id in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
-    
-    async def fetch_and_print_trainer_data(self, token_id):
+        for data in token_data:
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']), loop)
+
+    async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            token_ids = self.fetch_reservoir_data()  # Fetch token IDs and decimals
-            if token_ids:
-                for tid, price_decimal in token_ids:
-                    if tid == token_id:  # Match the token ID
-                        # Check if the trainer ID has exceeded the message limit
-                        if self.check_message_limit(token_id):
-                            # Construct the OpenSea link with the trainer ID
-                            blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                            message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']} for: {price_decimal}\n{blur_link}"
-                            for guild in self.bot.guilds:
-                                channels = await self.config.guild(guild).channels()
-                                for channel_id in channels:
-                                    channel = guild.get_channel(channel_id)
-                                    await channel.send(message)
-                            # Update the last message time for the trainer ID
-                            self.update_last_message_time(token_id)
-                        else:
-                            pass
+            # Check if the trainer ID has exceeded the message limit
+            if self.check_message_limit(token_id):
+                # Construct the OpenSea link with the trainer ID
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}, Price: {decimal_value}\n{blur_link}"
+                for guild in self.bot.guilds:
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        await channel.send(message)
+                # Update the last message time for the trainer ID
+                self.update_last_message_time(token_id)
+            else:
+                pass
         else:
             pass
 
