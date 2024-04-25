@@ -95,22 +95,20 @@ class Trainer(commands.Cog):
             data = response.json()
             if 'orders' in data:
                 token_ids = []
+                decimals = []
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
-                    decimal = order['price']['amount']['decimal']
                     token_ids.append(token_id)
-                return token_ids
+                    decimal = order['price']['amount'].get('decimal')
+                    decimals.append(decimal)
+                return token_ids, decimals
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
-        return None
+        return None, None
 
-    def fetch_trainer_data_with_threads(self, token_ids):
-        loop = asyncio.get_event_loop()
-        for token_id in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
-    
+
     async def fetch_and_print_trainer_data(self, token_id, decimal):
-        trainer_data = await self.fetch_trainer_data(token_id, decimal)
+        trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
@@ -128,6 +126,7 @@ class Trainer(commands.Cog):
                 pass
         else:
             pass
+
 
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
