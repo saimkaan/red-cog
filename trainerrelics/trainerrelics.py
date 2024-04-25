@@ -19,7 +19,8 @@ class TrainerRelics(commands.Cog):
         trainerrelics_data = self.fetch_trainerrelics_data(token_id)
         if trainerrelics_data:
             blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-            message = f"{trainerrelics_data['relics_type']} relic count: {trainerrelics_data['relics_count']}\n{blur_link}"
+            relics_message = "\n".join([f"{relic['relicsType']} relic count: {relic['count']}" for relic in trainerrelics_data['relics']])
+            message = f"{relics_message}\n{blur_link}"
             await ctx.send(message)
         else:
             await ctx.send("No data available for the provided token ID.")
@@ -31,12 +32,13 @@ class TrainerRelics(commands.Cog):
             data = response.json()
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
+                relics = []
                 for relic in relics_response:
-                    if relic['relicsType'] == 'diamond':
-                        return {
-                            'relics_type': relic['relicsType'],
-                            'relics_count': relic['count']
-                        }
+                    relics.append({
+                        'relicsType': relic['relicsType'],
+                        'count': relic['count']
+                    })
+                return {'relics': relics}
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainerrelics API: {e}")
         return None
