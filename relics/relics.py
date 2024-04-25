@@ -2,7 +2,7 @@ from redbot.core import commands
 import requests
 import logging
 
-class TrainerRelics(commands.Cog):
+class Relics(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.url_relics = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
