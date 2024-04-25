@@ -94,27 +94,30 @@ class Pixelmon(commands.Cog):
             data = response.json()
             if 'orders' in data:
                 token_ids = []
+                decimals = []
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
                     token_ids.append(token_id)
-                return token_ids
+                    decimal = order['price']['amount'].get('decimal')
+                    decimals.append(decimal)
+                return token_ids, decimals
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
-        return None
+        return None, None
 
     def fetch_pixelmon_data_with_threads(self, token_ids):
         loop = asyncio.get_event_loop()
         for token_id in token_ids:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
     
-    async def fetch_and_print_pixelmon_data(self, token_id):
+    async def fetch_and_print_pixelmon_data(self, token_id, decimal):
         pixelmon_data = await self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
             # Check if the pixelmon ID has exceeded the message limit
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the pixelmon ID
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
-                message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
+                message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']} for: {decimal}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
