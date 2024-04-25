@@ -65,11 +65,12 @@ class Trainer(commands.Cog):
             try:
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
-                    self.fetch_trainer_data_with_threads(token_ids)
+                    await self.fetch_trainer_data_with_tasks(token_ids)
                 await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
+
 
     def fetch_trainer_data(self, trainer_id):
         try:
@@ -102,10 +103,9 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    def fetch_trainer_data_with_threads(self, token_ids):
-        loop = asyncio.get_event_loop()
+    async def fetch_trainer_data_with_tasks(self, token_ids):
         for token_id in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
+            await self.fetch_and_print_trainer_data(token_id)
     
     async def fetch_and_print_trainer_data(self, token_id):
         trainer_data = self.fetch_trainer_data(token_id)
