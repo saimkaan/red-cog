@@ -72,33 +72,33 @@ class Trainer(commands.Cog):
                 await asyncio.sleep(60)
 
 
-    def fetch_trainer_data(self, trainer_id):
+    async def fetch_trainer_data(self, trainer_id):
         try:
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
-            response = requests.post(self.url_trainer, json=payload)
-            data = response.json()
-            if 'result' in data and 'response' in data['result']:
-                relics_response = data['result']['response']['relicsResponse']
-                for relic in relics_response:
-                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
-                        return {
-                            'relics_type': relic['relicsType'],
-                            'relics_count': relic['count']
-                        }
+            async with self.session.post(self.url_trainer, json=payload) as response:
+                data = await response.json()
+                if 'result' in data and 'response' in data['result']:
+                    relics_response = data['result']['response']['relicsResponse']
+                    for relic in relics_response:
+                        if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
+                            return {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
 
-    def fetch_reservoir_data(self):
+    async def fetch_reservoir_data(self):
         try:
-            response = requests.get(self.url_reservoir, headers=self.headers)
-            data = response.json()
-            if 'orders' in data:
-                token_ids = []
-                for order in data['orders']:
-                    token_id = order['criteria']['data']['token']['tokenId']
-                    token_ids.append(token_id)
-                return token_ids
+            async with self.session.get(self.url_reservoir, headers=self.headers) as response:
+                data = await response.json()
+                if 'orders' in data:
+                    token_ids = []
+                    for order in data['orders']:
+                        token_id = order['criteria']['data']['token']['tokenId']
+                        token_ids.append(token_id)
+                    return token_ids
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
