@@ -63,50 +63,49 @@ class Trainer(commands.Cog):
     async def fetch_data(self):
         while True:
             try:
-                token_ids = await self.fetch_reservoir_data()  # Await the asynchronous method
+                token_ids = self.fetch_reservoir_data()
                 if token_ids:
-                    await self.fetch_trainer_data_with_tasks(token_ids)
+                    self.fetch_trainer_data_with_threads(token_ids)
                 await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
 
-
-
-    async def fetch_trainer_data(self, trainer_id):
+    def fetch_trainer_data(self, trainer_id):
         try:
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
-            async with self.session.post(self.url_trainer, json=payload) as response:
-                data = await response.json()
-                if 'result' in data and 'response' in data['result']:
-                    relics_response = data['result']['response']['relicsResponse']
-                    for relic in relics_response:
-                        if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
-                            return {
-                                'relics_type': relic['relicsType'],
-                                'relics_count': relic['count']
-                            }
+            response = requests.post(self.url_trainer, json=payload)
+            data = response.json()
+            if 'result' in data and 'response' in data['result']:
+                relics_response = data['result']['response']['relicsResponse']
+                for relic in relics_response:
+                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
+                        return {
+                            'relics_type': relic['relicsType'],
+                            'relics_count': relic['count']
+                        }
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
 
-    async def fetch_reservoir_data(self):
+    def fetch_reservoir_data(self):
         try:
-            async with self.session.get(self.url_reservoir, headers=self.headers) as response:
-                data = await response.json()
-                if 'orders' in data:
-                    token_ids = []
-                    for order in data['orders']:
-                        token_id = order['criteria']['data']['token']['tokenId']
-                        token_ids.append(token_id)
-                    return token_ids
+            response = requests.get(self.url_reservoir, headers=self.headers)
+            data = response.json()
+            if 'orders' in data:
+                token_ids = []
+                for order in data['orders']:
+                    token_id = order['criteria']['data']['token']['tokenId']
+                    token_ids.append(token_id)
+                return token_ids
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    async def fetch_trainer_data_with_tasks(self, token_ids):
+    def fetch_trainer_data_with_threads(self, token_ids):
+        loop = asyncio.get_event_loop()
         for token_id in token_ids:
-            await self.fetch_and_print_trainer_data(token_id)
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
     
     async def fetch_and_print_trainer_data(self, token_id):
         trainer_data = self.fetch_trainer_data(token_id)
@@ -115,10 +114,7 @@ class Trainer(commands.Cog):
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                relics_message = ""
-                for relic_info in trainer_data:
-                    relics_message += f"{relic_info['relics_type'].capitalize()}: {relic_info['relics_count']}\n"
-                message = f"@everyone Relics count for Trainer {token_id}:\n{relics_message}{blur_link}"
+                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
@@ -130,7 +126,6 @@ class Trainer(commands.Cog):
                 pass
         else:
             pass
-
 
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
