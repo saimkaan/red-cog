@@ -95,26 +95,27 @@ class Trainer(commands.Cog):
             data = response.json()
             if 'orders' in data:
                 token_ids = []
-                decimals = []
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
                     token_ids.append(token_id)
-                    decimal = order['price']['amount'].get('decimal')
-                    decimals.append(decimal)
-                return token_ids, decimals
+                return token_ids
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
-        return None, None
+        return None
 
-
-    async def fetch_and_print_trainer_data(self, token_id, decimal):
+    def fetch_trainer_data_with_threads(self, token_ids):
+        loop = asyncio.get_event_loop()
+        for token_id in token_ids:
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
+    
+    async def fetch_and_print_trainer_data(self, token_id):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']} for: {decimal}\n{blur_link}"
+                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
@@ -126,7 +127,6 @@ class Trainer(commands.Cog):
                 pass
         else:
             pass
-
 
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
