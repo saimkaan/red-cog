@@ -114,7 +114,10 @@ class Trainer(commands.Cog):
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{blur_link}"
+                relics_message = ""
+                for relic_info in trainer_data:
+                    relics_message += f"{relic_info['relics_type'].capitalize()}: {relic_info['relics_count']}\n"
+                message = f"@everyone Relics count for Trainer {token_id}:\n{relics_message}{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
@@ -126,6 +129,7 @@ class Trainer(commands.Cog):
                 pass
         else:
             pass
+
 
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
