@@ -19,9 +19,14 @@ class Trainer(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+        self.data = []
+        self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
 
     def cog_unload(self):
+        if self.task:
+            self.task.cancel()
+            self.task = None
         asyncio.create_task(self.session.close())
 
     @commands.group()
@@ -60,8 +65,7 @@ class Trainer(commands.Cog):
             try:
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
-                    for token_id in token_ids:
-                        await self.fetch_and_print_trainer_data(token_id)
+                    self.fetch_trainer_data_with_threads(token_ids)
                 await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
@@ -75,7 +79,7 @@ class Trainer(commands.Cog):
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
-                    if relic['relicsType'] in ['wood', 'diamond'] and relic['count'] > 0:
+                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
                         return {
                             'relics_type': relic['relicsType'],
                             'relics_count': relic['count']
@@ -98,6 +102,11 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
+    def fetch_trainer_data_with_threads(self, token_ids):
+        loop = asyncio.get_event_loop()
+        for token_id in token_ids:
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
+    
     async def fetch_and_print_trainer_data(self, token_id):
         trainer_data = self.fetch_trainer_data(token_id)
         if trainer_data:
@@ -121,6 +130,7 @@ class Trainer(commands.Cog):
         else:
             pass
 
+
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
         current_time = time.time()
@@ -138,3 +148,9 @@ class Trainer(commands.Cog):
         self.last_message_time[token_id] = current_time
         # Increment the message count for the trainer ID
         self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
+
+    def cog_unload(self):
+        if self.task:
+            self.task.cancel()
+            self.task = None
+        asyncio.create_task(self.session.close())
