@@ -75,7 +75,7 @@ class Trainer(commands.Cog):
             if 'result' in data and 'response' in data['result']:
                 relics_response = data['result']['response']['relicsResponse']
                 for relic in relics_response:
-                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
+                    if relic['relicsType'] in ['wood', 'diamond'] and relic['count'] > 0:
                         return {
                             'relics_type': relic['relicsType'],
                             'relics_count': relic['count']
