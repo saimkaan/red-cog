@@ -109,7 +109,7 @@ class Trainer(commands.Cog):
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(token_id), loop)
     
     async def fetch_and_print_trainer_data(self, token_id):
-        trainer_data = self.fetch_trainer_data(token_id)
+        trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
             # Check if the trainer ID has exceeded the message limit
             if self.check_message_limit(token_id):
