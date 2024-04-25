@@ -98,7 +98,7 @@ class Trainer(commands.Cog):
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
                     price_decimal = order['price']['amount']['decimal']
-                    token_ids.append(token_id, price_decimal)
+                    token_ids.append((token_id, price_decimal))
                 return token_ids
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
