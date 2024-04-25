@@ -97,7 +97,8 @@ class Trainer(commands.Cog):
                 token_ids = []
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
-                    token_ids.append(token_id)
+                    price_decimal = order['price']['amount']['decimal']
+                    token_ids.append(token_id, price_decimal)
                 return token_ids
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
@@ -111,20 +112,24 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            # Check if the trainer ID has exceeded the message limit
-            if self.check_message_limit(token_id):
-                # Construct the OpenSea link with the trainer ID
-                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}\n{blur_link}"
-                for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        await channel.send(message)
-                # Update the last message time for the trainer ID
-                self.update_last_message_time(token_id)
-            else:
-                pass
+            token_ids = self.fetch_reservoir_data()  # Fetch token IDs and decimals
+            if token_ids:
+                for tid, price_decimal in token_ids:
+                    if tid == token_id:  # Match the token ID
+                        # Check if the trainer ID has exceeded the message limit
+                        if self.check_message_limit(token_id):
+                            # Construct the OpenSea link with the trainer ID
+                            blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                            message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']} for: {price_decimal}\n{blur_link}"
+                            for guild in self.bot.guilds:
+                                channels = await self.config.guild(guild).channels()
+                                for channel_id in channels:
+                                    channel = guild.get_channel(channel_id)
+                                    await channel.send(message)
+                            # Update the last message time for the trainer ID
+                            self.update_last_message_time(token_id)
+                        else:
+                            pass
         else:
             pass
 
