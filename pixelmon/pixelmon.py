@@ -71,21 +71,21 @@ class Pixelmon(commands.Cog):
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
 
-    def fetch_pixelmon_data(self, pixelmon_id):
+    async def fetch_pixelmon_data(self, pixelmon_id):
         try:
             payload = {'nftType': 'pixelmon', 'tokenId': str(pixelmon_id)}
-            response = requests.post(self.url_pixelmon, json=payload)
-            data = response.json()
-            if 'result' in data and 'response' in data['result']:
-                relics_response = data['result']['response']['relicsResponse']
-                for relic in relics_response:
-                    if relic['relicsType'] in ['gold', 'diamond'] and relic['count'] > 0:
-                        return {
-                            'relics_type': relic['relicsType'],
-                            'relics_count': relic['count']
-                        }
+            async with self.session.post(self.url_pixelmon, json=payload) as response:
+                data = await response.json()
+                if 'result' in data and 'response' in data['result']:
+                    relics_response = data['result']['response']['relicsResponse']
+                    for relic in relics_response:
+                        if relic['relicsType'] in ['diamond'] and relic['count'] > 0:
+                            return {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
         except Exception as e:
-            logging.error(f"Error occurred while fetching data from Pixelmon API: {e}")
+            logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
         return None
 
     def fetch_reservoir_data(self):
@@ -108,7 +108,7 @@ class Pixelmon(commands.Cog):
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
     
     async def fetch_and_print_pixelmon_data(self, token_id):
-        pixelmon_data = self.fetch_pixelmon_data(token_id)
+        pixelmon_data = await self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
             # Check if the pixelmon ID has exceeded the message limit
             if self.check_message_limit(token_id):
