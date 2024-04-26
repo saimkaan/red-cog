@@ -86,7 +86,7 @@ class Trainer(commands.Cog):
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'gold' and relic['count'] > 1:
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 2:
                             gold_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
@@ -115,17 +115,21 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
     
-    async def get_floor_price(self, token_id):
+    async def get_attribute(self, token_id, attribute_key):
         try:
-            url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey=rarity"
+            url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
             async with self.session.get(url) as response:
                 data = await response.json()
                 if 'attributes' in data and len(data['attributes']) > 0:
-                    floor_prices = data['attributes'][0].get('floorAskPrices', [])
-                    if floor_prices:
-                        return floor_prices[0]
+                    if attribute_key == 'floor_price':
+                        attribute_value = data['attributes'][0].get('floorAskPrices', [])[0] if data['attributes'][0].get('floorAskPrices') else None
+                    elif attribute_key == 'rarity':
+                        attribute_value = data['attributes'][0].get('value')
+                    else:
+                        attribute_value = None
+                    return attribute_value
         except Exception as e:
-            logging.error(f"Error occurred while fetching floor price: {e}")
+            logging.error(f"Error occurred while fetching {attribute_key}: {e}")
         return None
 
     def fetch_trainer_data_with_threads(self, token_data):
@@ -136,26 +140,31 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            floor_price = await self.get_floor_price(token_id)
-            if decimal_value > 2 * floor_price:
-                return
+            floor_price = await self.get_attribute(token_id, 'floor_price')
+            if decimal_value > floor_price + 0.1:  # Check if decimal_value is 0.055 higher than floor price
+                return  # Do not send message if condition is met
+
+            # Your existing logic for constructing and sending message goes here
             if self.check_message_limit(token_id):
+                # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                rarity = await self.get_attribute(token_id, 'rarity')
                 if trainer_data['relics_type'] == 'diamond':
-                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
+                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity}, Price: {decimal_value} ETH\n{blur_link}"
                 elif trainer_data['relics_type'] == 'gold':
-                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
+                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Rarity: {rarity}, Price: {decimal_value} ETH\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
                         channel = guild.get_channel(channel_id)
                         await channel.send(message)
+                # Update the last message time for the trainer ID
                 self.update_last_message_time(token_id)
             else:
                 pass
         else:
             pass
-        
+
     def check_message_limit(self, token_id):
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
