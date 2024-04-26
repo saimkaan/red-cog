@@ -115,8 +115,10 @@ class Trainer(commands.Cog):
         async with self.session.get(url, headers=self.headers) as response:
             data = await response.json()
             if 'attributes' in data and len(data['attributes']) > 0:
-                return data['attributes'][0]['value']
-        return None
+                rarity_att = data['attributes'][0]['value']
+                floor_price = data['attributes'][0]['floorAskPrices'][0] if 'floorAskPrices' in data['attributes'][0] and len(data['attributes'][0]['floorAskPrices']) > 0 else None
+                return rarity_att, floor_price
+        return None, None
 
     def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
@@ -128,11 +130,11 @@ class Trainer(commands.Cog):
         if trainer_data:
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                rarity_att = await self.get_attribute(token_id, 'rarity')
+                rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
                 if trainer_data['relics_type'] == 'diamond':
-                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH\n{blur_link}"
+                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, {rarity_att} Floor Price: {floor_price}, Current Price: {decimal_value} ETH\n{blur_link}"
                 elif trainer_data['relics_type'] == 'gold':
-                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH\n{blur_link}"
+                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, {rarity_att} Floor Price: {floor_price}, Current Price: {decimal_value} ETH\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
