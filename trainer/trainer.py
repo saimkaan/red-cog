@@ -24,12 +24,6 @@ class Trainer(commands.Cog):
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
 
-    def cog_unload(self):
-        if self.task:
-            self.task.cancel()
-            self.task = None
-        asyncio.create_task(self.session.close())
-
     @commands.group()
     async def trainer(self, ctx):
         pass
@@ -66,8 +60,8 @@ class Trainer(commands.Cog):
             try:
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
-                    self.fetch_trainer_data_with_threads(token_ids)
-                await asyncio.sleep(30)
+                    await self.fetch_trainer_data_with_threads(token_ids)
+                await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -107,23 +101,25 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    def fetch_trainer_data_with_threads(self, token_data):
+    async def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
+        tasks = []
         for data in token_data:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']), loop)
+            task = asyncio.create_task(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
 
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         floor_price = await self.fetch_floor_price()
         if floor_price is None:
             logging.error("Error fetching floor price")
             return
-        # if decimal_value > floor_price * 2:
-        #     logging.error("floor price *2")
-        #     return
+        if decimal_value > floor_price * 2:
+            return
         relics_data = await self.fetch_trainer_data(token_id)
         if relics_data:
             for relic in relics_data:
-                if (relic['relics_type'] == 'gold' and relic['count'] >= 2) or (relic['relics_type'] == 'wood' and relic['count'] >= 1):
+                if (relic['relics_type'] == 'gold' and relic['count'] >= 2) or (relic['relics_type'] == 'diamond' and relic['count'] >= 1):
                     if self.check_message_limit(token_id):
                         blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                         message = f"@everyone {relic['relics_type']} relic count: {relic['count']}, Price: {decimal_value} ETH\n{blur_link}"
