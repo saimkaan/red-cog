@@ -147,9 +147,9 @@ class Trainer(commands.Cog):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity = await self.get_attribute(token_id, 'rarity')
                 if trainer_data['relics_type'] == 'diamond':
-                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity}, Price: {decimal_value} ETH\n{blur_link}"
+                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity}, Floor: {floor_price} ETH ---- Current Price: {decimal_value} ETH\n{blur_link}"
                 elif trainer_data['relics_type'] == 'gold':
-                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Rarity: {rarity}, Price: {decimal_value} ETH\n{blur_link}"
+                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Rarity: {rarity}, Floor: {floor_price} ETH ---- Current Price: {decimal_value} ETH\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
