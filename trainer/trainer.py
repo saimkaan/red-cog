@@ -85,7 +85,7 @@ class Trainer(commands.Cog):
         return None
 
     async def fetch_floor_price(self):
-        async with self.session.get(self.url_floor_price) as response:
+        async with self.session.get(self.url_floor_price, headers=self.headers) as response:
             data = await response.json()
             if 'events' in data and len(data['events']) > 0:
                 return data['events'][0]['floorAsk']['price']['decimal']
