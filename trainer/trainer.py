@@ -120,21 +120,18 @@ class Trainer(commands.Cog):
             url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
             async with self.session.get(url, headers=self.headers) as response:
                 data = await response.json()
-                print("Response data:", data)
                 if 'attributes' in data and len(data['attributes']) > 0:
+                    attributes = data['attributes'][0]
                     if attribute_key == 'floor_price':
-                        floor_prices = data['attributes'][0].get('floorAskPrices', [])
+                        floor_prices = attributes.get('floorAskPrices', [])
                         if floor_prices:
                             return floor_prices[0]
-                        else:
-                            return None
                     elif attribute_key == 'rarity':
-                        return data['attributes'][0].get('value')
-                    else:
-                        return None
+                        return attributes.get('value')
         except Exception as e:
             logging.error(f"Error occurred while fetching {attribute_key}: {e}")
         return None
+
 
 
     def fetch_trainer_data_with_threads(self, token_data):
