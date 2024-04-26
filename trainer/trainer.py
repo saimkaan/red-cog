@@ -141,7 +141,7 @@ class Trainer(commands.Cog):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
             floor_price = await self.get_attribute(token_id, 'floor_price')
-            if decimal_value > floor_price + 0.1:  # Check if decimal_value is 0.055 higher than floor price
+            if decimal_value > floor_price + 1:  # Check if decimal_value is 0.055 higher than floor price
                 return  # Do not send message if condition is met
 
             # Your existing logic for constructing and sending message goes here
