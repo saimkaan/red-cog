@@ -114,23 +114,6 @@ class Trainer(commands.Cog):
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
-    
-    # async def get_attribute(self, token_id, attribute_key):
-    #     try:
-    #         url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey=rarity"
-    #         async with self.session.get(url, headers=self.headers) as response:
-    #             data = await response.json()
-    #             if 'attributes' in data and len(data['attributes']) > 0:
-    #                 if attribute_key == 'floor_price':
-    #                     attribute_value = data['attributes'][0].get('floorAskPrices', [])[0] if data['attributes'][0].get('floorAskPrices') else None
-    #                 elif attribute_key == 'rarity':
-    #                     attribute_value = data['attributes'][0].get('value')
-    #                 else:
-    #                     attribute_value = None
-    #                 return attribute_value
-    #     except Exception as e:
-    #         logging.error(f"Error occurred while fetching {attribute_key}: {e}")
-    #     return None
 
     def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
@@ -140,9 +123,6 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            # floor_price = await self.get_attribute(token_id, 'floor_price')
-            # if decimal_value > floor_price + 1:
-            #     return
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity = await self.get_attribute(token_id, 'rarity')
