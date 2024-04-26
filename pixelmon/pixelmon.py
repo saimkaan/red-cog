@@ -5,6 +5,7 @@ import discord
 import requests
 import logging
 import time
+import json
 
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
@@ -19,15 +20,10 @@ class Pixelmon(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+        self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=Rarity"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
-
-    def cog_unload(self):
-        if self.task:
-            self.task.cancel()
-            self.task = None
-        asyncio.create_task(self.session.close())
 
     @commands.group()
     async def pixelmon(self, ctx):
@@ -66,10 +62,10 @@ class Pixelmon(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(30)  # Run every 30 seconds
+                await asyncio.sleep(60)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
-                await asyncio.sleep(60)
+                await asyncio.sleep(120)
 
     async def fetch_pixelmon_data(self, pixelmon_id):
         try:
@@ -77,13 +73,24 @@ class Pixelmon(commands.Cog):
             async with self.session.post(self.url_pixelmon, json=payload) as response:
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
+                    gold_relics = None
+                    diamond_relics = None
                     relics_response = data['result']['response']['relicsResponse']
                     for relic in relics_response:
-                        if relic['relicsType'] in ['diamond'] and relic['count'] > 0:
-                            return {
+                        if relic['relicsType'] == 'diamond' and relic['count'] > 0:
+                            diamond_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 2:
+                            gold_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                    if diamond_relics:
+                        return diamond_relics
+                    elif gold_relics:
+                        return gold_relics
         except Exception as e:
             logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
         return None
@@ -93,56 +100,68 @@ class Pixelmon(commands.Cog):
             response = requests.get(self.url_reservoir, headers=self.headers)
             data = response.json()
             if 'orders' in data:
-                token_ids = []
+                token_data = []
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
-                    token_ids.append(token_id)
-                return token_ids
+                    decimal_value = order['price']['amount']['decimal']
+                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value})
+                return token_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
-
-    def fetch_pixelmon_data_with_threads(self, token_ids):
-        loop = asyncio.get_event_loop()
-        for token_id in token_ids:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(token_id), loop)
     
-    async def fetch_and_print_pixelmon_data(self, token_id):
+    async def get_attribute(self, token_id, attribute_key):
+        url = self.url_attribute.format(token_id)
+        async with self.session.get(url, headers=self.headers) as response:
+            data = await response.json()
+            if 'attributes' in data and len(data['attributes']) > 0:
+                rarity_att = data['attributes'][0]['value']
+                floor_price = data['attributes'][0]['floorAskPrices'][0] if 'floorAskPrices' in data['attributes'][0] and len(data['attributes'][0]['floorAskPrices']) > 0 else None
+                return rarity_att, floor_price
+        return None, None
+
+    def fetch_pixelmon_data_with_threads(self, token_data):
+        loop = asyncio.get_event_loop()
+        for data in token_data:
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value']), loop)
+
+    async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
         pixelmon_data = await self.fetch_pixelmon_data(token_id)
         if pixelmon_data:
-            # Check if the pixelmon ID has exceeded the message limit
             if self.check_message_limit(token_id):
-                # Construct the OpenSea link with the pixelmon ID
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
-                message = f"@everyone {pixelmon_data['relics_type']} relic count: {pixelmon_data['relics_count']}\n{blur_link}"
-                for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        await channel.send(message)
-                # Update the last message time for the pixelmon ID
-                self.update_last_message_time(token_id)
+                rarity_att, floor_price = await self.get_attribute(token_id, 'Rarity')
+                if decimal_value <= floor_price + 0.1:
+                    if pixelmon_data['relics_type'] == 'diamond':
+                        message = f"@everyone\nDiamond relic count: {pixelmon_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\n Current Price: {decimal_value} ETH\n{blur_link}"
+                    elif pixelmon_data['relics_type'] == 'gold':
+                        message = f"@everyone\nDiamond relic count: {pixelmon_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\n Current Price: {decimal_value} ETH\n{blur_link}"
+                    for guild in self.bot.guilds:
+                        channels = await self.config.guild(guild).channels()
+                        for channel_id in channels:
+                            channel = guild.get_channel(channel_id)
+                            await channel.send(message)
+                    self.update_last_message_time(token_id)
+                else:
+                    pass
             else:
                 pass
         else:
             pass
 
+
     def check_message_limit(self, token_id):
-        # Check if the pixelmon ID has exceeded the message limit (1 message per 24 hours)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 86400:  # 86400 seconds = 24 hours
-            # Reset the message time if the time limit has elapsed
+        if current_time - last_message_time >= 86400:
             self.last_message_time[token_id] = current_time
             return True
         else:
-            return False  # Return False to indicate message limit exceeded
+            return False
 
     def update_last_message_time(self, token_id):
-        # Update the last message time for the pixelmon ID
         current_time = time.time()
         self.last_message_time[token_id] = current_time
-        # Increment the message count for the pixelmon ID
         self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
 
     def cog_unload(self):
