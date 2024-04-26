@@ -66,7 +66,7 @@ class Trainer(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     self.fetch_trainer_data_with_threads(token_ids)
-                await asyncio.sleep(30)
+                await asyncio.sleep(30)  # Run every 30 seconds
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -78,7 +78,12 @@ class Trainer(commands.Cog):
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
                     relics_response = data['result']['response']['relicsResponse']
-                    return relics_response
+                    for relic in relics_response:
+                        if relic['relicsType'] in ['diamond'] and relic['count'] > 0:
+                            return {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
@@ -105,37 +110,41 @@ class Trainer(commands.Cog):
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']), loop)
 
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
-        relics_data = await self.fetch_trainer_data(token_id)
-        if relics_data:
-            for relic in relics_data:
-                if (relic['relics_type'] == 'gold' and relic['count'] >= 2) or (relic['relics_type'] == 'diamond' and relic['count'] >= 1):
-                    if self.check_message_limit(token_id):
-                        blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                        message = f"@everyone {relic['relics_type']} relic count: {relic['count']}, Price: {decimal_value} ETH\n{blur_link}"
-                        for guild in self.bot.guilds:
-                            channels = await self.config.guild(guild).channels()
-                            for channel_id in channels:
-                                channel = guild.get_channel(channel_id)
-                                await channel.send(message)
-                        self.update_last_message_time(token_id)
-                    else:
-                        pass
-                else:
-                    pass
-
+        trainer_data = await self.fetch_trainer_data(token_id)
+        if trainer_data:
+            # Check if the trainer ID has exceeded the message limit
+            if self.check_message_limit(token_id):
+                # Construct the OpenSea link with the trainer ID
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
+                for guild in self.bot.guilds:
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        await channel.send(message)
+                # Update the last message time for the trainer ID
+                self.update_last_message_time(token_id)
+            else:
+                pass
+        else:
+            pass
 
     def check_message_limit(self, token_id):
+        # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 86400:
+        if current_time - last_message_time >= 86400:  # 86400 seconds = 24 hours
+            # Reset the message time if the time limit has elapsed
             self.last_message_time[token_id] = current_time
             return True
         else:
-            return False
+            return False  # Return False to indicate message limit exceeded
 
     def update_last_message_time(self, token_id):
+        # Update the last message time for the trainer ID
         current_time = time.time()
         self.last_message_time[token_id] = current_time
+        # Increment the message count for the trainer ID
         self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
 
     def cog_unload(self):
