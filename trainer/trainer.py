@@ -141,7 +141,7 @@ class Trainer(commands.Cog):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
             floor_price = await self.get_attribute(token_id, 'floor_price')
-            if floor_price is not None and decimal_value > floor_price + 1:
+            if floor_price is not None and decimal_value > floor_price + 0.08:
                 return
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
