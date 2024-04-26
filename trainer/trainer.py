@@ -66,7 +66,7 @@ class Trainer(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     self.fetch_trainer_data_with_threads(token_ids)
-                await asyncio.sleep(30)  # Run every 30 seconds
+                await asyncio.sleep(30)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -100,7 +100,6 @@ class Trainer(commands.Cog):
         return None
 
 
-
     def fetch_reservoir_data(self):
         try:
             response = requests.get(self.url_reservoir, headers=self.headers)
@@ -115,6 +114,19 @@ class Trainer(commands.Cog):
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
+    
+    async def get_floor_price(self, token_id):
+        try:
+            url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey=rarity"
+            async with self.session.get(url) as response:
+                data = await response.json()
+                if 'attributes' in data and len(data['attributes']) > 0:
+                    floor_prices = data['attributes'][0].get('floorAskPrices', [])
+                    if floor_prices:
+                        return floor_prices[0]
+        except Exception as e:
+            logging.error(f"Error occurred while fetching floor price: {e}")
+        return None
 
     def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
@@ -124,9 +136,10 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            # Check if the trainer ID has exceeded the message limit
+            floor_price = await self.get_floor_price(token_id)
+            if decimal_value > 2 * floor_price:
+                return
             if self.check_message_limit(token_id):
-                # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 if trainer_data['relics_type'] == 'diamond':
                     message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
@@ -137,30 +150,24 @@ class Trainer(commands.Cog):
                     for channel_id in channels:
                         channel = guild.get_channel(channel_id)
                         await channel.send(message)
-                # Update the last message time for the trainer ID
                 self.update_last_message_time(token_id)
             else:
                 pass
         else:
             pass
-
-
+        
     def check_message_limit(self, token_id):
-        # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 86400:  # 86400 seconds = 24 hours
-            # Reset the message time if the time limit has elapsed
+        if current_time - last_message_time >= 86400:
             self.last_message_time[token_id] = current_time
             return True
         else:
-            return False  # Return False to indicate message limit exceeded
+            return False
 
     def update_last_message_time(self, token_id):
-        # Update the last message time for the trainer ID
         current_time = time.time()
         self.last_message_time[token_id] = current_time
-        # Increment the message count for the trainer ID
         self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
 
     def cog_unload(self):
