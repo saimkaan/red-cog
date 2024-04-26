@@ -115,21 +115,18 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
     
-    def fetch_reservoir_data(self, token_id, decimal_value):
+    async def fetch_rarity_and_floor_price(self, token_id):
+        url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey=rarity"
         try:
-            url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey=rarity"
             response = requests.get(url, headers=self.headers)
             data = response.json()
-            attributes_data = []
-            for attribute in data.get('attributes', []):
-                floor_price = attribute.get('floorAskPrices', [])
-                rarity = attribute.get('value', None)
-                if floor_price and rarity:
-                    attributes_data.append({'token_id': token_id, 'floor_price': floor_price[0], 'rarity': rarity})
-            return attributes_data
+            if 'attributes' in data and len(data['attributes']) > 0:
+                rarity = data['attributes'][0]['value']
+                floor_price = data['attributes'][0]['floorAskPrices'][0]
+                return rarity, floor_price
         except Exception as e:
-            logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
-        return None
+            logging.error(f"Error occurred while fetching rarity and floor price data: {e}")
+        return None, None
 
 
     def fetch_trainer_data_with_threads(self, token_data):
