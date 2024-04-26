@@ -117,7 +117,7 @@ class Trainer(commands.Cog):
     
     async def fetch_attribute_data(self, token_id):
         url = self.url_attributes.format(token_id)
-        async with self.session.get(url, headers=self.headers_attributes) as response:
+        async with self.session.get(url, headers=self.headers) as response:
             data = await response.json()
             value = data['attributes'][0]['value']
             floorAskPrices = data['attributes'][0]['floorAskPrices']
@@ -134,7 +134,6 @@ class Trainer(commands.Cog):
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity = await self.get_attribute(token_id, 'rarity')
-
                 # Fetch the attribute data
                 attribute_data = await self.fetch_attribute_data(token_id)
                 value = attribute_data['value']
