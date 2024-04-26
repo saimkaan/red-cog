@@ -122,7 +122,7 @@ class Trainer(commands.Cog):
         relics_data = await self.fetch_trainer_data(token_id)
         if relics_data:
             for relic in relics_data:
-                if (relic['relics_type'] == 'gold' and relic['count'] >= 2) or (relic['relics_type'] == 'diamond' and relic['count'] >= 1):
+                if (relic['relics_type'] == 'gold' and relic['count'] >= 2) or (relic['relics_type'] == 'wood' and relic['count'] >= 1):
                     if self.check_message_limit(token_id):
                         blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                         message = f"@everyone {relic['relics_type']} relic count: {relic['count']}, Price: {decimal_value} ETH\n{blur_link}"
