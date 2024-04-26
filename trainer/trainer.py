@@ -120,6 +120,7 @@ class Trainer(commands.Cog):
             url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
             async with self.session.get(url, headers=self.headers) as response:
                 data = await response.json()
+                print("Response data:", data)
                 if 'attributes' in data and len(data['attributes']) > 0:
                     if attribute_key == 'floor_price':
                         floor_prices = data['attributes'][0].get('floorAskPrices', [])
