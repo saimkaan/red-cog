@@ -122,15 +122,19 @@ class Trainer(commands.Cog):
                 data = await response.json()
                 if 'attributes' in data and len(data['attributes']) > 0:
                     if attribute_key == 'floor_price':
-                        attribute_value = data['attributes'][0].get('floorAskPrices', [])[0] if data['attributes'][0].get('floorAskPrices') else None
+                        floor_prices = data['attributes'][0].get('floorAskPrices', [])
+                        if floor_prices:
+                            return floor_prices[0]
+                        else:
+                            return None
                     elif attribute_key == 'rarity':
-                        attribute_value = data['attributes'][0].get('value')
+                        return data['attributes'][0].get('value')
                     else:
-                        attribute_value = None
-                    return attribute_value
+                        return None
         except Exception as e:
             logging.error(f"Error occurred while fetching {attribute_key}: {e}")
         return None
+
 
     def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
