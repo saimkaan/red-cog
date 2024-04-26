@@ -118,7 +118,7 @@ class Trainer(commands.Cog):
     async def get_attribute(self, token_id, attribute_key):
         try:
             url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
-            async with self.session.get(url) as response:
+            async with self.session.get(url, headers=self.headers) as response:
                 data = await response.json()
                 if 'attributes' in data and len(data['attributes']) > 0:
                     if attribute_key == 'floor_price':
@@ -140,11 +140,10 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            # floor_price = await self.get_attribute(token_id, 'floor_price')
-            # if decimal_value < floor_price + 1:  # Check if decimal_value is 0.055 higher than floor price
-            #     return  # Do not send message if condition is met
-
-            # # Your existing logic for constructing and sending message goes here
+            floor_price = await self.get_attribute(token_id, 'floorAskPrices')
+            if decimal_value > floor_price + 1:  # Check if decimal_value is 0.055 higher than floor price
+                return  # Do not send message if condition is met
+            # Your existing logic for constructing and sending message goes here
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
