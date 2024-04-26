@@ -5,6 +5,7 @@ import discord
 import requests
 import logging
 import time
+import json
 
 class Trainer(commands.Cog):
     def __init__(self, bot):
@@ -19,16 +20,10 @@ class Trainer(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        self.url_attributes = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
+        self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.data = []
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
-
-    def cog_unload(self):
-        if self.task:
-            self.task.cancel()
-            self.task = None
-        asyncio.create_task(self.session.close())
 
     @commands.group()
     async def trainer(self, ctx):
@@ -115,13 +110,13 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
     
-    async def fetch_attribute_data(self, token_id):
-        url = self.url_attributes.format(token_id)
+    async def get_attribute(self, token_id, attribute_key):
+        url = self.url_attribute.format(token_id)
         async with self.session.get(url, headers=self.headers) as response:
             data = await response.json()
-            value = data['attributes'][0]['value']
-            floorAskPrices = data['attributes'][0]['floorAskPrices']
-            return {'value': value, 'floorAskPrices': floorAskPrices}
+            if 'attributes' in data and len(data['attributes']) > 0:
+                return data['attributes'][0]['value']
+        return None
 
     def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
@@ -133,24 +128,21 @@ class Trainer(commands.Cog):
         if trainer_data:
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                rarity = await self.get_attribute(token_id, 'rarity')
-                # Fetch the attribute data
-                attribute_data = await self.fetch_attribute_data(token_id)
-                value = attribute_data['value']
-                floorAskPrices = attribute_data['floorAskPrices']
-
-                # Add the condition here
-                if floorAskPrices[0] + 1 < decimal_value:
-                    if trainer_data['relics_type'] == 'diamond':
-                        message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, {value} Floor Price: {floorAskPrices}, Price: {decimal_value} ETH,\n{blur_link}"
-                    elif trainer_data['relics_type'] == 'gold':
-                        message = f"@everyone Gold relic count: {trainer_data['relics_count']}, {value} Floor Price: {floorAskPrices}, Price: {decimal_value} ETH,\n{blur_link}"
-                    for guild in self.bot.guilds:
-                        channels = await self.config.guild(guild).channels()
-                        for channel_id in channels:
-                            channel = guild.get_channel(channel_id)
-                            await channel.send(message)
-                    self.update_last_message_time(token_id)
+                rarity_att = await self.get_attribute(token_id, 'rarity')
+                if trainer_data['relics_type'] == 'diamond':
+                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH\n{blur_link}"
+                elif trainer_data['relics_type'] == 'gold':
+                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH\n{blur_link}"
+                for guild in self.bot.guilds:
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        await channel.send(message)
+                self.update_last_message_time(token_id)
+            else:
+                pass
+        else:
+            pass
 
     def check_message_limit(self, token_id):
         current_time = time.time()
