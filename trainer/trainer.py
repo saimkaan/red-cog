@@ -117,20 +117,22 @@ class Trainer(commands.Cog):
     
     async def get_attribute(self, token_id, attribute_key):
         try:
-            url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
+            url = f"https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={token_id}&attributeKey=rarity"
             async with self.session.get(url, headers=self.headers) as response:
                 data = await response.json()
                 if 'attributes' in data and len(data['attributes']) > 0:
                     attributes = data['attributes'][0]
-                    if attribute_key == 'floor_price':
-                        floor_prices = attributes.get('floorAskPrices', [])
-                        if floor_prices:
-                            return floor_prices[0]
-                    elif attribute_key == 'rarity':
-                        return attributes.get('value')
+                    floor_prices = attributes.get('floorAskPrices', [])
+                    if floor_prices:
+                        floor_price = floor_prices[0]
+                    else:
+                        floor_price = None
+                    rarity = attributes.get('value')
+                    return floor_price, rarity
         except Exception as e:
-            logging.error(f"Error occurred while fetching {attribute_key}: {e}")
-        return None
+            logging.error(f"Error occurred while fetching attributes: {e}")
+        return None, None
+
 
 
 
