@@ -77,16 +77,28 @@ class Trainer(commands.Cog):
             async with self.session.post(self.url_trainer, json=payload) as response:
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
+                    gold_relics = None
+                    diamond_relics = None
                     relics_response = data['result']['response']['relicsResponse']
                     for relic in relics_response:
-                        if relic['relicsType'] in ['diamond'] and relic['count'] > 0:
-                            return {
+                        if relic['relicsType'] == 'diamond' and relic['count'] > 0:
+                            diamond_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 1:
+                            gold_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                    if diamond_relics:
+                        return diamond_relics
+                    elif gold_relics:
+                        return gold_relics
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
+
 
 
     def fetch_reservoir_data(self):
@@ -116,7 +128,10 @@ class Trainer(commands.Cog):
             if self.check_message_limit(token_id):
                 # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-                message = f"@everyone {trainer_data['relics_type']} relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
+                if trainer_data['relics_type'] == 'diamond':
+                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
+                elif trainer_data['relics_type'] == 'gold':
+                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Price: {decimal_value} ETH\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
@@ -128,6 +143,7 @@ class Trainer(commands.Cog):
                 pass
         else:
             pass
+
 
     def check_message_limit(self, token_id):
         # Check if the trainer ID has exceeded the message limit (1 message per 24 hours)
