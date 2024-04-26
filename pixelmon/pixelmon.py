@@ -133,9 +133,9 @@ class Pixelmon(commands.Cog):
                 rarity_att, floor_price = await self.get_attribute(token_id, 'Rarity')
                 if decimal_value <= floor_price + 0.1:
                     if pixelmon_data['relics_type'] == 'diamond':
-                        message = f"@everyone\nDiamond relic count: {pixelmon_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\n Current Price: {decimal_value} ETH\n{blur_link}"
+                        message = f"@everyone\nDiamond relic count: {pixelmon_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
                     elif pixelmon_data['relics_type'] == 'gold':
-                        message = f"@everyone\nDiamond relic count: {pixelmon_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\n Current Price: {decimal_value} ETH\n{blur_link}"
+                        message = f"@everyone\nDiamond relic count: {pixelmon_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
                     for guild in self.bot.guilds:
                         channels = await self.config.guild(guild).channels()
                         for channel_id in channels:
