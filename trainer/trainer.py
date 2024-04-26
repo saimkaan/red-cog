@@ -140,12 +140,10 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            # floor_price = await self.get_attribute(token_id, 'floorAskPrices')
-            # if decimal_value > floor_price + 1:  # Check if decimal_value is 0.055 higher than floor price
-            #     return  # Do not send message if condition is met
-            # # Your existing logic for constructing and sending message goes here
+            floor_price = await self.get_attribute(token_id, 'floor_price')
+            if decimal_value > floor_price + 1:
+                return
             if self.check_message_limit(token_id):
-                # Construct the OpenSea link with the trainer ID
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity = await self.get_attribute(token_id, 'rarity')
                 if trainer_data['relics_type'] == 'diamond':
@@ -157,7 +155,6 @@ class Trainer(commands.Cog):
                     for channel_id in channels:
                         channel = guild.get_channel(channel_id)
                         await channel.send(message)
-                # Update the last message time for the trainer ID
                 self.update_last_message_time(token_id)
             else:
                 pass
