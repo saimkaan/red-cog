@@ -131,20 +131,25 @@ class Trainer(commands.Cog):
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
-                if trainer_data['relics_type'] == 'diamond':
-                    message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, {rarity_att} Floor Price: {floor_price}, Current Price: {decimal_value} ETH\n{blur_link}"
-                elif trainer_data['relics_type'] == 'gold':
-                    message = f"@everyone Gold relic count: {trainer_data['relics_count']}, {rarity_att} Floor Price: {floor_price}, Current Price: {decimal_value} ETH\n{blur_link}"
-                for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        await channel.send(message)
-                self.update_last_message_time(token_id)
+                print(floor_price + 0.1)
+                if decimal_value <= floor_price + 0.1:
+                    if trainer_data['relics_type'] == 'diamond':
+                        message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH, Floor Ask Price: {floor_price}\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'gold':
+                        message = f"@everyone Gold relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH, Floor Ask Price: {floor_price}\n{blur_link}"
+                    for guild in self.bot.guilds:
+                        channels = await self.config.guild(guild).channels()
+                        for channel_id in channels:
+                            channel = guild.get_channel(channel_id)
+                            await channel.send(message)
+                    self.update_last_message_time(token_id)
+                else:
+                    pass
             else:
                 pass
         else:
             pass
+
 
     def check_message_limit(self, token_id):
         current_time = time.time()
