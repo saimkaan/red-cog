@@ -117,7 +117,7 @@ class Trainer(commands.Cog):
         if floor_price is None:
             logging.error("Error fetching floor price")
             return
-        if decimal_value > floor_price * 1.2:
+        if decimal_value > floor_price * 2:
             return
         relics_data = await self.fetch_trainer_data(token_id)
         if relics_data:
