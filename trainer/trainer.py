@@ -24,6 +24,12 @@ class Trainer(commands.Cog):
         self.task = asyncio.create_task(self.fetch_data())
         self.last_message_time = {}
 
+    def cog_unload(self):
+        if self.task:
+            self.task.cancel()
+            self.task = None
+        asyncio.create_task(self.session.close())
+
     @commands.group()
     async def trainer(self, ctx):
         pass
@@ -60,8 +66,8 @@ class Trainer(commands.Cog):
             try:
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
-                    await self.fetch_trainer_data_with_threads(token_ids)
-                await asyncio.sleep(30)  # Run every 30 seconds
+                    self.fetch_trainer_data_with_async(token_ids)
+                await asyncio.sleep(30)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -101,13 +107,10 @@ class Trainer(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    async def fetch_trainer_data_with_threads(self, token_data):
-        loop = asyncio.get_event_loop()
-        tasks = []
+    async def fetch_trainer_data_with_async(self, token_data):
         for data in token_data:
-            task = asyncio.create_task(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']))
-            tasks.append(task)
-        await asyncio.gather(*tasks)
+            await self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value'])
+
 
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         floor_price = await self.fetch_floor_price()
