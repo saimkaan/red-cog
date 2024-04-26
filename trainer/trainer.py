@@ -122,7 +122,7 @@ class Trainer(commands.Cog):
                 data = await response.json()
                 if 'attributes' in data and len(data['attributes']) > 0:
                     if attribute_key == 'floor_price':
-                        attribute_value = data['attributes'][0].get('floorAskPrices', [])[0] if data['attributes'][0].get('floorAskPrices') else None
+                        attribute_value = data['attributes'][0].get('floorAskPrices'[0])
                     elif attribute_key == 'rarity':
                         attribute_value = data['attributes'][0].get('value')
                     else:
