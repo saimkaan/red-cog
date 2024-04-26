@@ -131,7 +131,6 @@ class Trainer(commands.Cog):
             if self.check_message_limit(token_id):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
-                print(floor_price + 0.1)
                 if decimal_value <= floor_price + 0.1:
                     if trainer_data['relics_type'] == 'diamond':
                         message = f"@everyone Diamond relic count: {trainer_data['relics_count']}, Rarity: {rarity_att}, Price: {decimal_value} ETH, Floor Ask Price: {floor_price}\n{blur_link}"
