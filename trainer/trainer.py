@@ -152,7 +152,7 @@ class Trainer(commands.Cog):
     def check_message_limit(self, token_id):
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 86400:
+        if current_time - last_message_time >= 43200:
             self.last_message_time[token_id] = current_time
             return True
         else:
