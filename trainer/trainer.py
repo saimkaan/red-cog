@@ -135,7 +135,7 @@ class Trainer(commands.Cog):
                     if trainer_data['relics_type'] == 'diamond':
                         message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
                     elif trainer_data['relics_type'] == 'gold':
-                        message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                        message = f"@everyone\Gold relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
                     for guild in self.bot.guilds:
                         channels = await self.config.guild(guild).channels()
                         for channel_id in channels:
@@ -152,7 +152,7 @@ class Trainer(commands.Cog):
     def check_message_limit(self, token_id):
         current_time = time.time()
         last_message_time = self.last_message_time.get(token_id, 0)
-        if current_time - last_message_time >= 43200:
+        if current_time - last_message_time >= 14400:
             self.last_message_time[token_id] = current_time
             return True
         else:
