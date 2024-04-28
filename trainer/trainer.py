@@ -76,6 +76,9 @@ class Trainer(commands.Cog):
                 if 'result' in data and 'response' in data['result']:
                     gold_relics = None
                     diamond_relics = None
+                    silver_relics = None
+                    bronze_relics = None
+                    wood_relics = None
                     relics_response = data['result']['response']['relicsResponse']
                     for relic in relics_response:
                         if relic['relicsType'] == 'diamond' and relic['count'] > 0:
@@ -83,8 +86,23 @@ class Trainer(commands.Cog):
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'gold' and relic['count'] > 1:
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 3:
                             gold_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                        elif relic['relicsType'] == 'silver' and relic['count'] > 8:
+                            silver_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                        elif relic['relicsType'] == 'bronze' and relic['count'] > 16:
+                            bronze_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                        elif relic['relicsType'] == 'wood' and relic['count'] > 40:
+                            wood_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
@@ -92,6 +110,12 @@ class Trainer(commands.Cog):
                         return diamond_relics
                     elif gold_relics:
                         return gold_relics
+                    elif silver_relics:
+                        return silver_relics
+                    elif bronze_relics:
+                        return bronze_relics
+                    elif wood_relics:
+                        return wood_relics
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
@@ -131,13 +155,19 @@ class Trainer(commands.Cog):
         if trainer_data:
             blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
             rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
-            if decimal_value <= floor_price + 0.1:
+            if decimal_value <= floor_price + 0.3:
                 last_decimal_value = self.last_decimal_values.get(token_id)
                 if last_decimal_value is None or last_decimal_value != decimal_value:
                     if trainer_data['relics_type'] == 'diamond':
                         message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
                     elif trainer_data['relics_type'] == 'gold':
                         message = f"@everyone\nGold relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'silver':
+                        message = f"@everyone\nSilver relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'bronze':
+                        message = f"@everyone\nBronze relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'wood':
+                        message = f"@everyone\nWood relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
                     for guild in self.bot.guilds:
                         channels = await self.config.guild(guild).channels()
                         for channel_id in channels:
