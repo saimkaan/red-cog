@@ -4,6 +4,7 @@ import asyncio
 import discord
 import logging
 import requests
+import math
 
 class Trainer(commands.Cog):
     def __init__(self, bot):
@@ -92,10 +93,10 @@ class Trainer(commands.Cog):
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
-                    relics_value = self.calculate_relics_value(trainer_data)
-                    total_price = floor_price + relics_value
+                    relics_value = math.ceil(self.calculate_relics_value(trainer_data))
+                    total_price = math.ceil(floor_price + relics_value)
                     relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
-                    message = f"@everyone\n{rarity_atts}Trainer: {token_id}\nFloor Price: {floor_price} ETH\n{relics_info}\nRelics Value: {relics_value} ETH\nTotal Price: {total_price} ETH\n{blur_link}"
+                    message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price} ETH\nRelics Value: {relics_value} ETH\n\n**Total Price: {total_price} ETH**\n{blur_link}"
                     if decimal_value <= total_price:
                         self.last_decimal_values[token_id] = decimal_value
                         for guild in self.bot.guilds:
