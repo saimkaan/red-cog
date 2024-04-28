@@ -157,4 +157,4 @@ class Trainer(commands.Cog):
         if self.task:
             self.task.cancel()
             self.task = None
-        asyncio.create_task(self.session.close())pri
+        asyncio.create_task(self.session.close())
