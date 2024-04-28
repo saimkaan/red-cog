@@ -73,21 +73,52 @@ class Trainer(commands.Cog):
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
             async with self.session.post(self.url_trainer, json=payload) as response:
                 data = await response.json()
-                print("Data from trainer API:", data)  # Add this line to print data
                 if 'result' in data and 'response' in data['result']:
-                    relics_data = []
+                    gold_relics = None
+                    diamond_relics = None
+                    silver_relics = None
+                    bronze_relics = None
+                    wood_relics = None
                     relics_response = data['result']['response']['relicsResponse']
                     for relic in relics_response:
-                        if relic['relicsType'] in ['diamond', 'gold', 'silver', 'bronze', 'wood'] and relic['count'] > 0:
-                            relics_data.append({
+                        if relic['relicsType'] == 'diamond' and relic['count'] > 0:
+                            diamond_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
-                            })
-                    return relics_data
+                            }
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 2:
+                            gold_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                        elif relic['relicsType'] == 'silver' and relic['count'] > 7:
+                            silver_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                        elif relic['relicsType'] == 'bronze' and relic['count'] > 15:
+                            bronze_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                        elif relic['relicsType'] == 'wood' and relic['count'] > 39:
+                            wood_relics = {
+                                'relics_type': relic['relicsType'],
+                                'relics_count': relic['count']
+                            }
+                    if diamond_relics:
+                        return diamond_relics
+                    elif gold_relics:
+                        return gold_relics
+                    elif silver_relics:
+                        return silver_relics
+                    elif bronze_relics:
+                        return bronze_relics
+                    elif wood_relics:
+                        return wood_relics
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
-
 
     def fetch_reservoir_data(self):
         try:
@@ -114,44 +145,39 @@ class Trainer(commands.Cog):
                 return rarity_att, floor_price
         return None, None
 
-    async def fetch_trainer_data_with_threads(self, token_data):
+    def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
         for data in token_data:
-            relics_data = await self.fetch_trainer_data(data['token_id'])  # Fetch relics data
-            if relics_data:  # Check if relics data is not None
-                asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value'], relics_data), loop)
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']), loop)
 
-
-    async def fetch_and_print_trainer_data(self, token_id, decimal_value, relics_data):
-        total_value = 0
-        for relic in relics_data:
-            if relic['relics_type'] == 'diamond':
-                total_value += relic['relics_count'] * 0.15
-            elif relic['relics_type'] == 'gold':
-                total_value += relic['relics_count'] * 0.045
-            elif relic['relics_type'] == 'silver':
-                total_value += relic['relics_count'] * 0.018
-            elif relic['relics_type'] == 'bronze':
-                total_value += relic['relics_count'] * 0.009
-            elif relic['relics_type'] == 'wood':
-                total_value += relic['relics_count'] * 0.0024
-        
-        rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
-        total_value += floor_price
-        print(f"Total Value: {total_value} ETH")
-        if decimal_value < total_value:
+    async def fetch_and_print_trainer_data(self, token_id, decimal_value):
+        trainer_data = await self.fetch_trainer_data(token_id)
+        if trainer_data:
             blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-            message = f"@everyone\n"
-            for relic in relics_data:
-                message += f"{relic['relics_type'].capitalize()} relic count: {relic['relics_count']}\n"
-            message += f"{rarity_att} Floor Price + Relic Value: {total_value} ETH\nCurrent Price: {decimal_value} ETH\n{blur_link}"
-            
-            for guild in self.bot.guilds:
-                channels = await self.config.guild(guild).channels()
-                for channel_id in channels:
-                    channel = guild.get_channel(channel_id)
-                    await channel.send(message)
-
+            rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
+            if decimal_value <= floor_price + 0.3:
+                last_decimal_value = self.last_decimal_values.get(token_id)
+                if last_decimal_value is None or last_decimal_value != decimal_value:
+                    if trainer_data['relics_type'] == 'diamond':
+                        message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'gold':
+                        message = f"@everyone\nGold relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'silver':
+                        message = f"@everyone\nSilver relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'bronze':
+                        message = f"@everyone\nBronze relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'wood':
+                        message = f"@everyone\nWood relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    for guild in self.bot.guilds:
+                        channels = await self.config.guild(guild).channels()
+                        for channel_id in channels:
+                            channel = guild.get_channel(channel_id)
+                            await channel.send(message)
+                    self.last_decimal_values[token_id] = decimal_value
+            else:
+                pass
+        else:
+            pass
 
     def cog_unload(self):
         if self.task:
