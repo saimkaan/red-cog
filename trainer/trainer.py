@@ -138,8 +138,8 @@ class Trainer(commands.Cog):
         
         rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
         total_value += floor_price
-        
-        if decimal_value > total_value:
+        print(total_value)
+        if decimal_value < total_value:
             blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
             message = f"@everyone\n"
             for relic in relics_data:
@@ -157,4 +157,4 @@ class Trainer(commands.Cog):
         if self.task:
             self.task.cancel()
             self.task = None
-        asyncio.create_task(self.session.close())
+        asyncio.create_task(self.session.close())pri
