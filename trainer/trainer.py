@@ -73,6 +73,7 @@ class Trainer(commands.Cog):
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
             async with self.session.post(self.url_trainer, json=payload) as response:
                 data = await response.json()
+                print("Data from trainer API:", data)  # Add this line to print data
                 if 'result' in data and 'response' in data['result']:
                     relics_data = []
                     relics_response = data['result']['response']['relicsResponse']
@@ -86,6 +87,7 @@ class Trainer(commands.Cog):
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
+
 
     def fetch_reservoir_data(self):
         try:
