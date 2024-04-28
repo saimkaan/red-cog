@@ -117,7 +117,7 @@ class Trainer(commands.Cog):
     def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
         for data in token_data:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value'], data['relics']), loop)
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value'], data['relics_data']), loop)
 
     async def fetch_and_print_trainer_data(self, token_id, decimal_value, relics_data):
         total_value = 0
