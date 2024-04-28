@@ -86,22 +86,22 @@ class Trainer(commands.Cog):
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'gold' and relic['count'] > 3:
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 2:
                             gold_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'silver' and relic['count'] > 8:
+                        elif relic['relicsType'] == 'silver' and relic['count'] > 7:
                             silver_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'bronze' and relic['count'] > 16:
+                        elif relic['relicsType'] == 'bronze' and relic['count'] > 15:
                             bronze_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'wood' and relic['count'] > 40:
+                        elif relic['relicsType'] == 'wood' and relic['count'] > 39:
                             wood_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
