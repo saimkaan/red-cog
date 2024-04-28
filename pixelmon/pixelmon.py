@@ -60,7 +60,7 @@ class Pixelmon(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(30)
+                await asyncio.sleep(60)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
