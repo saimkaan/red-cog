@@ -128,22 +128,40 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         trainer_data = await self.fetch_trainer_data(token_id)
         if trainer_data:
-            blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-            rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
-            if decimal_value <= floor_price + 0.1:
-                if trainer_data['relics_type'] == 'diamond':
-                    message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
-                elif trainer_data['relics_type'] == 'gold':
-                    message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
-                for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        await channel.send(message)
+            if self.check_message_limit(token_id):
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
+                if decimal_value <= floor_price + 0.1:
+                    if trainer_data['relics_type'] == 'diamond':
+                        message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    elif trainer_data['relics_type'] == 'gold':
+                        message = f"@everyone\nDiamond relic count: {trainer_data['relics_count']}\n{rarity_att} Floor Price: {floor_price}\nCurrent Price: {decimal_value} ETH\n{blur_link}"
+                    for guild in self.bot.guilds:
+                        channels = await self.config.guild(guild).channels()
+                        for channel_id in channels:
+                            channel = guild.get_channel(channel_id)
+                            await channel.send(message)
+                    self.update_last_message_time(token_id)
+                else:
+                    pass
             else:
                 pass
         else:
             pass
+    
+    def check_message_limit(self, token_id):
+        current_time = time.time()
+        last_message_time = self.last_message_time.get(token_id, 0)
+        if current_time - last_message_time >= 86400:
+            self.last_message_time[token_id] = current_time
+            return True
+        else:
+            return False
+
+    def update_last_message_time(self, token_id):
+        current_time = time.time()
+        self.last_message_time[token_id] = current_time
+        self.last_message_time[f"{token_id}_count"] = self.last_message_time.get(f"{token_id}_count", 0) + 1
 
     def cog_unload(self):
         if self.task:
