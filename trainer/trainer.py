@@ -82,7 +82,7 @@ class Trainer(commands.Cog):
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
                             }
-                        elif relic['relicsType'] == 'gold' and relic['count'] > 2:
+                        elif relic['relicsType'] == 'gold' and relic['count'] > 1:
                             gold_relics = {
                                 'relics_type': relic['relicsType'],
                                 'relics_count': relic['count']
