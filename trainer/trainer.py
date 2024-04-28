@@ -97,7 +97,7 @@ class Trainer(commands.Cog):
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
-                        message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Total Price: {total_price:.4f} ETH**\n{blur_link}"
+                        message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
