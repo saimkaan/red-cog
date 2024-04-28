@@ -138,7 +138,7 @@ class Trainer(commands.Cog):
         
         rarity_att, floor_price = await self.get_attribute(token_id, 'rarity')
         total_value += floor_price
-        print(total_value)
+        print(f"Total Value: {total_value} ETH")
         if decimal_value < total_value:
             blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
             message = f"@everyone\n"
