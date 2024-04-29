@@ -107,6 +107,7 @@ class Pixelmon(commands.Cog):
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
                         message = f"@everyone\n**{rarity_atts['Rarity']}** pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                        print(f"Debug - Decimal Value: {decimal_value}, Total Price: {total_price}")
                         if decimal_value <= total_price:
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
