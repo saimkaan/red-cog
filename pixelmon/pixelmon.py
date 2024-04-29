@@ -97,7 +97,7 @@ class Pixelmon(commands.Cog):
                 self.pixelmon_data_cache[token_id] = pixelmon_data
                 print(f"New pixelmon cached: {token_id}: {pixelmon_data}")
             print(f"Debug - Pixelmon data fetched: {pixelmon_data}")
-            if pixelmon_data is not None:
+            if pixelmon_data is not None and pixelmon_data != {}:
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
@@ -113,8 +113,8 @@ class Pixelmon(commands.Cog):
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone = True)
-                                    await channel.send(message, allowed_mentions = allowed_mentions)
+                                    allowed_mentions = discord.AllowedMentions(everyone=True)
+                                    await channel.send(message, allowed_mentions=allowed_mentions)
             else:
                 logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
 
