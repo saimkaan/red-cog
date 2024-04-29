@@ -22,7 +22,7 @@ class Pixelmon(commands.Cog):
         self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
-        self.pixelmon_relics = {}
+        self.pixelmon_data_cache = {}
 
     @commands.group()
     async def pixelmon(self, ctx):
@@ -61,7 +61,7 @@ class Pixelmon(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(10)
+                await asyncio.sleep(30)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -89,10 +89,12 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            pixelmon_data = self.pixelmon_relics.get(token_id)
-            if pixelmon_data is None:
+            if token_id in self.pixelmon_data_cache:
+                pixelmon_data = self.pixelmon_data_cache[token_id]
+            else:
                 pixelmon_data = await self.fetch_pixelmon_data(token_id)
-                self.pixelmon_relics[token_id] = pixelmon_data
+                self.pixelmon_data_cache[token_id] = pixelmon_data
+                print(f"New pixelmon cached: {token_id}: {pixelmon_data}")
             if pixelmon_data is not None:
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
@@ -124,9 +126,11 @@ class Pixelmon(commands.Cog):
                     for relic in relics_response:
                         relics_data[relic['relicsType']] = relic['count']
                     return relics_data
+                else:
+                    return {}
         except Exception as e:
             logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
-        return {}
+        return None
 
     async def get_attributes(self, token_id):
         url = self.url_attribute.format(token_id)
