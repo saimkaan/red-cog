@@ -22,7 +22,7 @@ class Trainer(commands.Cog):
         self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
-        self.token_relics_data = {}
+        self.trainer_relics = {}
 
     @commands.group()
     async def trainer(self, ctx):
@@ -61,7 +61,7 @@ class Trainer(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_trainer_data_with_threads(token_ids)
-                await asyncio.sleep(10)
+                await asyncio.sleep(30)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -89,12 +89,11 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            trainer_data = self.token_relics_data.get(token_id)
-            if not trainer_data:
+            trainer_data = self.trainer_relics.get(token_id)
+            if trainer_data is None:
                 trainer_data = await self.fetch_trainer_data(token_id)
-                if trainer_data:
-                    self.token_relics_data[token_id] = trainer_data
-            if trainer_data:
+                self.trainer_relics[token_id] = trainer_data
+            if trainer_data is not None:
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
@@ -128,7 +127,6 @@ class Trainer(commands.Cog):
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return {}
-
 
     async def get_attributes(self, token_id):
         url = self.url_attribute.format(token_id)
