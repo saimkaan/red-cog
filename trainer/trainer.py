@@ -90,8 +90,7 @@ class Trainer(commands.Cog):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
             logging.info(f"New message for token ID {token_id} with decimal value {decimal_value}")
-        # Rest of your code for posting the message
-            self.last_decimal_values[token_id] = decimal_value  # Update last_decimal_values
+            self.last_decimal_values[token_id] = decimal_value
         else:
             logging.info(f"Message for token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
         if last_decimal_value is None or last_decimal_value != decimal_value:
@@ -106,7 +105,7 @@ class Trainer(commands.Cog):
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
                         message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
-                            self.last_decimal_values[token_id] = decimal_value  # Update last_decimal_values here
+                            self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
@@ -114,17 +113,13 @@ class Trainer(commands.Cog):
                                     allowed_mentions = discord.AllowedMentions(everyone=True)
                                     await channel.send(message, allowed_mentions=allowed_mentions)
             else:
-                logging.error(f"No trainer data found for Trainer ID: {token_id}")
-
-
-
+                pass
 
     async def fetch_trainer_data(self, trainer_id):
         # Check if the trainer data is already in the cache
         cached_data = self.trainer_cache.get(trainer_id)
         if cached_data:
             return cached_data
-        
         try:
             payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
             async with self.session.post(self.url_trainer, json=payload) as response:
@@ -134,10 +129,7 @@ class Trainer(commands.Cog):
                     relics_data = {}
                     for relic in relics_response:
                         relics_data[relic['relicsType']] = relic['count']
-                    
-                    # Update cache with new data
                     self.trainer_cache[trainer_id] = relics_data
-                    
                     return relics_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
