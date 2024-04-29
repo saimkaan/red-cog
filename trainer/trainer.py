@@ -115,9 +115,9 @@ class Trainer(commands.Cog):
             else:
                 logging.error(f"No trainer data found for Trainer ID: {token_id}")
 
-    async def fetch_trainer_data(self, trainer_id):
+    async def fetch_trainer_data(self, token_id):
         try:
-            payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
+            payload = {'nftType': 'trainer', 'tokenId': str(token_id)}
             async with self.session.post(self.url_trainer, json=payload) as response:
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:

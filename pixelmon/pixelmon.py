@@ -115,9 +115,9 @@ class Pixelmon(commands.Cog):
             else:
                 logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
 
-    async def fetch_pixelmon_data(self, pixelmon_id):
+    async def fetch_pixelmon_data(self, token_id):
         try:
-            payload = {'nftType': 'pixelmon', 'tokenId': str(pixelmon_id)}
+            payload = {'nftType': 'pixelmon', 'tokenId': str(token_id)}
             async with self.session.post(self.url_pixelmon, json=payload) as response:
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
