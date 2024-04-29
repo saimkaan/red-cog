@@ -17,11 +17,12 @@ class Trainer(commands.Cog):
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=5"
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
+        self.token_relics_data = {}
 
     @commands.group()
     async def trainer(self, ctx):
@@ -88,33 +89,30 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            trainer_data = await self.fetch_trainer_data(token_id)
-            if trainer_data is None:
-                trainer_data = {}
-            blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-            rarity_atts, floor_price = await self.get_attributes(token_id)
-            if floor_price is not None:
-                relics_value = self.calculate_relics_value(trainer_data)
-                if relics_value >= 0.15:
-                    total_price = floor_price + relics_value
-                    relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
-                    message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
-                    if decimal_value <= total_price:
-                        self.last_decimal_values[token_id] = decimal_value
-                        for guild in self.bot.guilds:
-                            channels = await self.config.guild(guild).channels()
-                            for channel_id in channels:
-                                channel = guild.get_channel(channel_id)
-                                allowed_mentions = discord.AllowedMentions(everyone = True)
-                                await channel.send(message, allowed_mentions = allowed_mentions)
+            trainer_data = self.token_relics_data.get(token_id)
+            if not trainer_data:
+                trainer_data = await self.fetch_trainer_data(token_id)
+                if trainer_data:
+                    self.token_relics_data[token_id] = trainer_data
+            if trainer_data:
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                rarity_atts, floor_price = await self.get_attributes(token_id)
+                if floor_price is not None:
+                    relics_value = self.calculate_relics_value(trainer_data)
+                    if relics_value >= 0.15:
+                        total_price = floor_price + relics_value
+                        relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
+                        message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                        if decimal_value <= total_price:
+                            self.last_decimal_values[token_id] = decimal_value
+                            for guild in self.bot.guilds:
+                                channels = await self.config.guild(guild).channels()
+                                for channel_id in channels:
+                                    channel = guild.get_channel(channel_id)
+                                    allowed_mentions = discord.AllowedMentions(everyone = True)
+                                    await channel.send(message, allowed_mentions = allowed_mentions)
             else:
                 logging.error(f"No trainer data found for Trainer ID: {token_id}")
-
-
-    # @trainer.command()
-    # async def test_everyone(self, ctx):
-    #     allowed_mentions = discord.AllowedMentions(everyone = True)
-    #     await ctx.send("@everyone This is a test message", allowed_mentions=allowed_mentions)
 
     async def fetch_trainer_data(self, trainer_id):
         try:

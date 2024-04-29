@@ -22,6 +22,7 @@ class Pixelmon(commands.Cog):
         self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
+        self.token_relics_data = {}
 
     @commands.group()
     async def pixelmon(self, ctx):
@@ -60,7 +61,7 @@ class Pixelmon(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(60)
+                await asyncio.sleep(10)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -88,7 +89,11 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            pixelmon_data = await self.fetch_pixelmon_data(token_id)
+            pixelmon_data = self.token_relics_data.get(token_id)
+            if not pixelmon_data:
+                pixelmon_data = await self.fetch_pixelmon_data(token_id)
+                if pixelmon_data:
+                    self.token_relics_data[token_id] = pixelmon_data
             if pixelmon_data:
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
@@ -97,7 +102,7 @@ class Pixelmon(commands.Cog):
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
-                        message = f"@everyone\n**{rarity_atts['rarity']}** pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                        message = f"@everyone\n**{rarity_atts['rarity']}** Pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
@@ -108,8 +113,6 @@ class Pixelmon(commands.Cog):
                                     await channel.send(message, allowed_mentions = allowed_mentions)
             else:
                 logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
-
-
 
     async def fetch_pixelmon_data(self, pixelmon_id):
         try:
