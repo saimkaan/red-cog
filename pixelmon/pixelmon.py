@@ -104,8 +104,7 @@ class Pixelmon(commands.Cog):
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone = True)
-                                    await channel.send(message, allowed_mentions = allowed_mentions)
+                                    await channel.send(message)
             else:
                 logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
 
