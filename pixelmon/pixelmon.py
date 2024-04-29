@@ -6,7 +6,7 @@ import logging
 import requests
 import math
 
-class pixelmon(commands.Cog):
+class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=17171717)
