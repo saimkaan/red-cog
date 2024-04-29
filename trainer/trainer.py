@@ -104,8 +104,7 @@ class Trainer(commands.Cog):
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone = True)
-                                    await channel.send(message, allowed_mentions = allowed_mentions)
+                                    await channel.send(message)
             else:
                 logging.error(f"No trainer data found for Trainer ID: {token_id}")
 
@@ -137,7 +136,7 @@ class Trainer(commands.Cog):
         return None, None
 
     def calculate_relics_value(self, relics_data):
-        relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024}
+        relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 1.0024}
         total_value = 0
         for relic_type, count in relics_data.items():
             if relic_type in relic_values:
