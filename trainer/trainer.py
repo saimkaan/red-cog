@@ -93,6 +93,7 @@ class Trainer(commands.Cog):
             if trainer_data is None:
                 trainer_data = await self.fetch_trainer_data(token_id)
                 self.trainer_relics[token_id] = trainer_data
+                print(f"Newly added Trainer ID: {token_id}, {relics_info}" )
             if trainer_data is not None:
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
