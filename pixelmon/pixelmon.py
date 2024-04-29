@@ -6,10 +6,10 @@ import logging
 import requests
 import math
 
-class Pixelmon(commands.Cog):
+class pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=18181818)
+        self.config = Config.get_conf(self, identifier=17171717)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -22,7 +22,6 @@ class Pixelmon(commands.Cog):
         self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
-        self.pixelmon_data_cache = {}
 
     @commands.group()
     async def pixelmon(self, ctx):
@@ -87,41 +86,37 @@ class Pixelmon(commands.Cog):
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value']), loop)
 
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
-        print(f"Debug - Inside fetch_and_print_pixelmon_data for token ID: {token_id}, Decimal Value: {decimal_value}")
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            if token_id in self.pixelmon_data_cache:
-                pixelmon_data = self.pixelmon_data_cache[token_id]
-            else:
-                pixelmon_data = await self.fetch_pixelmon_data(token_id)
-                self.pixelmon_data_cache[token_id] = pixelmon_data
-                print(f"New pixelmon cached: {token_id}: {pixelmon_data}")
-            print(f"Debug - Pixelmon data fetched: {pixelmon_data}")
-            if pixelmon_data is not None and pixelmon_data != {}:
+            pixelmon_data = await self.fetch_pixelmon_data(token_id)
+            if pixelmon_data:
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
                     relics_value = self.calculate_relics_value(pixelmon_data)
-                    print(f"Debug - Token ID: {token_id}, Decimal Value: {decimal_value}, Floor Price: {floor_price}, Relics Value: {relics_value}")
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
-                        message = f"@everyone\n**{rarity_atts['Rarity']}** pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
-                        print(f"Debug - Decimal Value: {decimal_value}, Total Price: {total_price}")
+                        message = f"@everyone\n**{rarity_atts['rarity']}** pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone=True)
-                                    await channel.send(message, allowed_mentions=allowed_mentions)
+                                    allowed_mentions = discord.AllowedMentions(everyone = True)
+                                    await channel.send(message, allowed_mentions = allowed_mentions)
             else:
                 logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
 
-    async def fetch_pixelmon_data(self, token_id):
+    # @pixelmon.command()
+    # async def test_everyone(self, ctx):
+    #     allowed_mentions = discord.AllowedMentions(everyone = True)
+    #     await ctx.send("@everyone This is a test message", allowed_mentions=allowed_mentions)
+
+    async def fetch_pixelmon_data(self, pixelmon_id):
         try:
-            payload = {'nftType': 'pixelmon', 'tokenId': str(token_id)}
+            payload = {'nftType': 'pixelmon', 'tokenId': str(pixelmon_id)}
             async with self.session.post(self.url_pixelmon, json=payload) as response:
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
@@ -130,8 +125,6 @@ class Pixelmon(commands.Cog):
                     for relic in relics_response:
                         relics_data[relic['relicsType']] = relic['count']
                     return relics_data
-                else:
-                    return {}
         except Exception as e:
             logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
         return None
