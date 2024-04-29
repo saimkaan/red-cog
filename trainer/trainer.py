@@ -109,10 +109,10 @@ class Trainer(commands.Cog):
             else:
                 logging.error(f"No trainer data found for Trainer ID: {token_id}")
 
-    @trainer.command()
-    async def test_everyone(self, ctx):
-        allowed_mentions = discord.AllowedMentions(everyone = True)
-        await ctx.send("@everyone This is a test message", allowed_mentions=allowed_mentions)
+    # @trainer.command()
+    # async def test_everyone(self, ctx):
+    #     allowed_mentions = discord.AllowedMentions(everyone = True)
+    #     await ctx.send("@everyone This is a test message", allowed_mentions=allowed_mentions)
 
     async def fetch_trainer_data(self, trainer_id):
         try:
