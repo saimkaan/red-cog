@@ -87,6 +87,7 @@ class Pixelmon(commands.Cog):
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value']), loop)
 
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
+        print(f"Debug - Inside fetch_and_print_pixelmon_data for token ID: {token_id}, Decimal Value: {decimal_value}")
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
             if token_id in self.pixelmon_data_cache:
@@ -95,6 +96,7 @@ class Pixelmon(commands.Cog):
                 pixelmon_data = await self.fetch_pixelmon_data(token_id)
                 self.pixelmon_data_cache[token_id] = pixelmon_data
                 print(f"New pixelmon cached: {token_id}: {pixelmon_data}")
+            print(f"Debug - Pixelmon data fetched: {pixelmon_data}")
             if pixelmon_data is not None:
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
