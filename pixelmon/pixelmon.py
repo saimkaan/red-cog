@@ -9,7 +9,7 @@ import math
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=17171717)
+        self.config = Config.get_conf(self, identifier=18181818)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
