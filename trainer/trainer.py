@@ -104,7 +104,8 @@ class Trainer(commands.Cog):
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    await channel.send(message)
+                                    allowed_mentions = discord.AllowedMentions(everyone=True)
+                                    await channel.send(message, allowed_mentions=allowed_mentions)
             else:
                 logging.error(f"No trainer data found for Trainer ID: {token_id}")
 
