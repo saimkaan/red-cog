@@ -100,6 +100,7 @@ class Pixelmon(commands.Cog):
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
                     relics_value = self.calculate_relics_value(pixelmon_data)
+                    print(f"Debug - Token ID: {token_id}, Decimal Value: {decimal_value}, Floor Price: {floor_price}, Relics Value: {relics_value}")
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
