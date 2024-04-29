@@ -4,7 +4,6 @@ import asyncio
 import discord
 import logging
 import requests
-import math
 
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
@@ -146,7 +145,7 @@ class Pixelmon(commands.Cog):
         return None, None
 
     def calculate_relics_value(self, relics_data):
-        relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024}
+        relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024, 'unRevealed': 0.0024}
         total_value = 0
         for relic_type, count in relics_data.items():
             if relic_type in relic_values:
