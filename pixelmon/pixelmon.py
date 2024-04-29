@@ -6,10 +6,10 @@ import logging
 import requests
 import math
 
-class Pixelmon(commands.Cog):
+class Trainer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=18181818)
+        self.config = Config.get_conf(self, identifier=17171717)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -18,16 +18,16 @@ class Pixelmon(commands.Cog):
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
-        self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+        self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
 
     @commands.group()
-    async def pixelmon(self, ctx):
+    async def trainer(self, ctx):
         pass
 
-    @pixelmon.command()
+    @trainer.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
@@ -36,7 +36,7 @@ class Pixelmon(commands.Cog):
             channels.append(channel.id)
             await ctx.send(f"{channel.mention} set as a news feed channel.")
 
-    @pixelmon.command()
+    @trainer.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id not in channels:
@@ -45,7 +45,7 @@ class Pixelmon(commands.Cog):
             channels.remove(channel.id)
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
 
-    @pixelmon.command()
+    @trainer.command()
     async def listchannels(self, ctx):
         channels = await self.config.guild(ctx.guild).channels()
         if not channels:
@@ -59,7 +59,7 @@ class Pixelmon(commands.Cog):
             try:
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
-                    await self.fetch_pixelmon_data_with_threads(token_ids)
+                    await self.fetch_trainer_data_with_threads(token_ids)
                 await asyncio.sleep(30)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
@@ -80,24 +80,24 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
     
-    async def fetch_pixelmon_data_with_threads(self, token_data):
+    async def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
         for data in token_data:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value']), loop)
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']), loop)
 
-    async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
+    async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            pixelmon_data = await self.fetch_pixelmon_data(token_id)
-            if pixelmon_data:
+            trainer_data = await self.fetch_trainer_data(token_id)
+            if trainer_data:
                 blur_link = f"https://blur.io/asset/0x32973908faee0bf825a343000fe412ebe56f802a/{token_id}"
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
-                    relics_value = self.calculate_relics_value(pixelmon_data)
+                    relics_value = self.calculate_relics_value(trainer_data)
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
-                        relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
-                        message = f"@everyone\n**{rarity_atts['Rarity']}** pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                        relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
+                        message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
@@ -107,17 +107,14 @@ class Pixelmon(commands.Cog):
                                     allowed_mentions = discord.AllowedMentions(everyone = True)
                                     await channel.send(message, allowed_mentions = allowed_mentions)
             else:
-                logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
+                logging.error(f"No trainer data found for Trainer ID: {token_id}")
 
-    # @pixelmon.command()
-    # async def test_everyone(self, ctx):
-    #     allowed_mentions = discord.AllowedMentions(everyone = True)
-    #     await ctx.send("@everyone This is a test message", allowed_mentions=allowed_mentions)
 
-    async def fetch_pixelmon_data(self, pixelmon_id):
+
+    async def fetch_trainer_data(self, trainer_id):
         try:
-            payload = {'nftType': 'pixelmon', 'tokenId': str(pixelmon_id)}
-            async with self.session.post(self.url_pixelmon, json=payload) as response:
+            payload = {'nftType': 'trainer', 'tokenId': str(trainer_id)}
+            async with self.session.post(self.url_trainer, json=payload) as response:
                 data = await response.json()
                 if 'result' in data and 'response' in data['result']:
                     relics_response = data['result']['response']['relicsResponse']
@@ -126,7 +123,7 @@ class Pixelmon(commands.Cog):
                         relics_data[relic['relicsType']] = relic['count']
                     return relics_data
         except Exception as e:
-            logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
+            logging.error(f"Error occurred while fetching data from trainer API: {e}")
         return None
 
     async def get_attributes(self, token_id):
