@@ -19,9 +19,10 @@ class Pixelmon(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=10"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=rarity"
+        self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=Rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
+        self.pixelmon_cache = {}
 
     @commands.group()
     async def pixelmon(self, ctx):
@@ -60,7 +61,7 @@ class Pixelmon(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(30)
+                await asyncio.sleep(10)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
@@ -74,19 +75,25 @@ class Pixelmon(commands.Cog):
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
                     decimal_value = order['price']['amount']['decimal']
-                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value})
+                    exchange_kind = order['kind']
+                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value, 'exchange_kind': exchange_kind})
                 return token_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
+
     
     async def fetch_pixelmon_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
         for data in token_data:
-            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value']), loop)
+            asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value'], data['exchange_kind']), loop)
 
-    async def fetch_and_print_pixelmon_data(self, token_id, decimal_value):
-        last_decimal_value = self.last_decimal_values.get(token_id)
+    async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
+        last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
+        if last_decimal_value is None or last_decimal_value != decimal_value:
+            self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
+        else:
+            pass
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
@@ -104,13 +111,15 @@ class Pixelmon(commands.Cog):
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    await channel.send(message)
+                                    allowed_mentions = discord.AllowedMentions(everyone=True)
+                                    await channel.send(message, allowed_mentions=allowed_mentions)
             else:
-                logging.error(f"No pixelmon data found for pixelmon ID: {token_id}")
-
-
+                pass
 
     async def fetch_pixelmon_data(self, pixelmon_id):
+        cached_data = self.pixelmon_cache.get(pixelmon_id)
+        if cached_data:
+            return cached_data
         try:
             payload = {'nftType': 'pixelmon', 'tokenId': str(pixelmon_id)}
             async with self.session.post(self.url_pixelmon, json=payload) as response:
@@ -120,6 +129,7 @@ class Pixelmon(commands.Cog):
                     relics_data = {}
                     for relic in relics_response:
                         relics_data[relic['relicsType']] = relic['count']
+                    self.pixelmon_cache[pixelmon_id] = relics_data
                     return relics_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
