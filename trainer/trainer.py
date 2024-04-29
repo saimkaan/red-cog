@@ -89,10 +89,9 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            logging.info(f"New message for token ID {token_id} with decimal value {decimal_value}")
             self.last_decimal_values[token_id] = decimal_value
         else:
-            logging.info(f"Message for token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+            pass
         if last_decimal_value is None or last_decimal_value != decimal_value:
             trainer_data = await self.fetch_trainer_data(token_id)
             if trainer_data:
@@ -116,7 +115,6 @@ class Trainer(commands.Cog):
                 pass
 
     async def fetch_trainer_data(self, trainer_id):
-        # Check if the trainer data is already in the cache
         cached_data = self.trainer_cache.get(trainer_id)
         if cached_data:
             return cached_data
