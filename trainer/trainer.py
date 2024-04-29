@@ -75,21 +75,23 @@ class Trainer(commands.Cog):
                 for order in data['orders']:
                     token_id = order['criteria']['data']['token']['tokenId']
                     decimal_value = order['price']['amount']['decimal']
-                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value})
+                    exchange_kind = order['kind']
+                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value, 'exchange_kind': exchange_kind})
                 return token_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
+
     
     async def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
         for data in token_data:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value']), loop)
 
-    async def fetch_and_print_trainer_data(self, token_id, decimal_value):
-        last_decimal_value = self.last_decimal_values.get(token_id)
+    async def fetch_and_print_trainer_data(self, token_id, decimal_value, exchange_kind):
+        last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            self.last_decimal_values[token_id] = decimal_value
+            self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
             pass
         if last_decimal_value is None or last_decimal_value != decimal_value:
