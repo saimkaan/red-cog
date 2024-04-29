@@ -92,7 +92,7 @@ class Pixelmon(commands.Cog):
         if last_decimal_value is None or last_decimal_value != decimal_value:
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            pass
+            return
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
