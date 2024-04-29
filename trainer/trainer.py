@@ -100,7 +100,7 @@ class Trainer(commands.Cog):
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
                         message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
-                            self.last_decimal_values[token_id] = decimal_value
+                            self.last_decimal_values[token_id] = decimal_value  # Update last_decimal_values here
                             for guild in self.bot.guilds:
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
@@ -109,6 +109,7 @@ class Trainer(commands.Cog):
                                     await channel.send(message, allowed_mentions=allowed_mentions)
             else:
                 logging.error(f"No trainer data found for Trainer ID: {token_id}")
+
 
 
 
