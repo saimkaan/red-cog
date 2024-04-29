@@ -19,7 +19,7 @@ class Pixelmon(commands.Cog):
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
+        self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=Rarity"
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
         self.token_relics_data = {}
@@ -127,7 +127,8 @@ class Pixelmon(commands.Cog):
                     return relics_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from pixelmon API: {e}")
-        return None
+        return {}
+
 
     async def get_attributes(self, token_id):
         url = self.url_attribute.format(token_id)

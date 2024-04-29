@@ -127,7 +127,8 @@ class Trainer(commands.Cog):
                     return relics_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from trainer API: {e}")
-        return None
+        return {}
+
 
     async def get_attributes(self, token_id):
         url = self.url_attribute.format(token_id)
