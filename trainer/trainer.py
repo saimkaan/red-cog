@@ -88,7 +88,6 @@ class Trainer(commands.Cog):
     async def fetch_and_print_trainer_data(self, token_id, decimal_value):
         last_decimal_value = self.last_decimal_values.get(token_id)
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            await channel.send(message, allowed_mentions = allowed_mentions)
             trainer_data = await self.fetch_trainer_data(token_id)
             if trainer_data:
                 blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
