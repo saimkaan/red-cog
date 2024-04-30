@@ -87,35 +87,36 @@ class Trainer(commands.Cog):
         for data in token_data:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_trainer_data(data['token_id'], data['decimal_value'], data['exchange_kind']), loop)
 
-    async def fetch_and_print_trainer_data(self, token_id, decimal_value, exchange_kind):
-        last_decimal_value = self.last_decimal_values.get(token_id)
+    def fetch_and_print_trainer_data(self, token_id, decimal_value, exchange_kind):
+        loop = asyncio.get_event_loop()
+        last_decimal_value = loop.run_until_complete(self.get_last_decimal_value(token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            self.last_decimal_values[token_id] = decimal_value
+            logging.info(f"New message for token ID {token_id} with decimal value {decimal_value}")
+            self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            return
-        if token_id in self.trainer_cache:
-            return
-        trainer_data = await self.fetch_trainer_data(token_id)
-        if trainer_data:
-            blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
-            rarity_atts, floor_price = await self.get_attributes(token_id)
-            if floor_price is not None:
-                relics_value = self.calculate_relics_value(trainer_data)
-                if relics_value >= 0.15:
-                    total_price = floor_price + relics_value
-                    relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
-                    message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
-                    if decimal_value <= total_price:
-                        self.last_decimal_values[token_id] = decimal_value
-                        for guild in self.bot.guilds:
-                            channels = await self.config.guild(guild).channels()
-                            for channel_id in channels:
-                                channel = guild.get_channel(channel_id)
-                                allowed_mentions = discord.AllowedMentions(everyone=True)
-                                await channel.send(message, allowed_mentions=allowed_mentions)
-        else:
-            pass
-        self.trainer_cache.add(token_id)
+            logging.info(f"Message for token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+        if last_decimal_value is None or last_decimal_value != decimal_value:
+            trainer_data = loop.run_until_complete(self.fetch_trainer_data(token_id))
+            if trainer_data:
+                blur_link = f"https://blur.io/asset/0x8a3749936e723325c6b645a0901470cd9e790b94/{token_id}"
+                rarity_atts, floor_price = loop.run_until_complete(self.get_attributes(token_id))
+                if floor_price is not None:
+                    relics_value = self.calculate_relics_value(trainer_data)
+                    if relics_value >= 0.15:
+                        total_price = floor_price + relics_value
+                        relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
+                        message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                        if decimal_value <= total_price:
+                            self.last_decimal_values[token_id] = decimal_value
+                            for guild in self.bot.guilds:
+                                channels = loop.run_until_complete(self.config.guild(guild).channels())
+                                for channel_id in channels:
+                                    channel = guild.get_channel(channel_id)
+                                    allowed_mentions = discord.AllowedMentions(everyone=True)
+                                    loop.run_until_complete(channel.send(message, allowed_mentions=allowed_mentions)))
+            else:
+                pass
+
 
     async def fetch_trainer_data(self, trainer_id):
         cached_data = self.trainer_cache.get(trainer_id)
