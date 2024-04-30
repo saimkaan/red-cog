@@ -8,7 +8,7 @@ import requests
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=18181818)
+        self.config = Config.get_conf(self, identifier=17171717)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -60,10 +60,10 @@ class Pixelmon(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(10)
+                await asyncio.sleep(60)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
-                await asyncio.sleep(60)
+                await asyncio.sleep(360)
 
     def fetch_reservoir_data(self):
         try:
@@ -90,9 +90,10 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
         last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
+            logging.info(f"New message for token ID {token_id} with decimal value {decimal_value}")
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            return
+            logging.info(f"Message for token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
