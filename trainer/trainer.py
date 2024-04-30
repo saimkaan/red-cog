@@ -60,7 +60,7 @@ class Trainer(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_trainer_data_with_threads(token_ids)
-                await asyncio.sleep(10)
+                await asyncio.sleep(20)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
