@@ -113,7 +113,7 @@ class Trainer(commands.Cog):
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
                                     allowed_mentions = discord.AllowedMentions(everyone=True)
-                                    loop.run_until_complete(channel.send(message, allowed_mentions=allowed_mentions)))
+                                    loop.run_until_complete(channel.send(message, allowed_mentions=allowed_mentions))
             else:
                 pass
 
