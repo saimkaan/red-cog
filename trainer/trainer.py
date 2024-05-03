@@ -16,7 +16,7 @@ class Trainer(commands.Cog):
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=10"
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=20"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.url_attribute = "https://api.reservoir.tools/collections/0x8a3749936e723325c6b645a0901470cd9e790b94/attributes/explore/v5?tokenId={}&attributeKey=rarity"
         self.task = asyncio.create_task(self.fetch_data())
@@ -158,3 +158,24 @@ class Trainer(commands.Cog):
             self.task.cancel()
             self.task = None
         asyncio.create_task(self.session.close())
+
+    @trainer.command()
+    async def relics(self, ctx, token_id: int):
+        try:
+            trainer_data = await self.fetch_trainer_data(token_id)
+            if trainer_data:
+                decimal_value = await self.fetch_reservoir_data(token_id)
+                rarity_atts, floor_price = await self.get_attributes(token_id)
+                if floor_price is not None:
+                    relics_value = self.calculate_relics_value(trainer_data)
+                    message = f"**{rarity_atts['rarity']}** Trainer: {token_id}\n\nRelics Information:\n"
+                    for relic_type, count in trainer_data.items():
+                        message += f"{relic_type.capitalize()} Relic Count: {count}\n"
+                    message += f"\nDecimal Value: {decimal_value:.4f} ETH\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH"
+                    await ctx.send(message)
+                else:
+                    await ctx.send("Floor price not available for this trainer.")
+            else:
+                await ctx.send("Unable to fetch data for this trainer.")
+        except Exception as e:
+            logging.error(f"Error occurred while fetching relics data: {e}")
