@@ -16,7 +16,7 @@ class Pixelmon(commands.Cog):
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=50"
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=20"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.url_attribute = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?tokenId={}&attributeKey=Rarity"
         self.task = asyncio.create_task(self.fetch_data())
