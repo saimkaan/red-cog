@@ -28,6 +28,27 @@ class Pixelmon(commands.Cog):
         pass
 
     @pixelmon.command()
+    async def relics(self, ctx, token_id: int):
+        try:
+            pixelmon_data = await self.fetch_pixelmon_data(token_id)
+            if pixelmon_data:
+                decimal_value = await self.fetch_reservoir_data(token_id)
+                rarity_atts, floor_price = await self.get_attributes(token_id)
+                if floor_price is not None:
+                    relics_value = self.calculate_relics_value(pixelmon_data)
+                    message = f"**{rarity_atts['rarity']}** Pixelmon: {token_id}\n\nRelics Information:\n"
+                    for relic_type, count in pixelmon_data.items():
+                        message += f"{relic_type.capitalize()} Relic Count: {count}\n"
+                    message += f"\nDecimal Value: {decimal_value:.4f} ETH\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH"
+                    await ctx.send(message)
+                else:
+                    await ctx.send("Floor price not available for this trainer.")
+            else:
+                await ctx.send("Unable to fetch data for this trainer.")
+        except Exception as e:
+            logging.error(f"Error occurred while fetching relics data: {e}")
+
+    @pixelmon.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
