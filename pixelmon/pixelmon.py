@@ -90,10 +90,10 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
         last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            logging.info(f"New message for token ID {token_id} with decimal value {decimal_value}")
+            logging.info(f"New message for Pixelmon token ID {token_id} with decimal value {decimal_value}")
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            logging.info(f"Message for token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+            logging.info(f"Message for Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
