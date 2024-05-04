@@ -101,7 +101,7 @@ class Trainer(commands.Cog):
                 rarity_atts, floor_price = await self.get_attributes(token_id)
                 if floor_price is not None:
                     relics_value = self.calculate_relics_value(trainer_data)
-                    if relics_value >= 0.10:
+                    if relics_value >= 0.15:
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in trainer_data.items()])
                         message = f"@everyone\n**{rarity_atts['rarity']}** Trainer: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
