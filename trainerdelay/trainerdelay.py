@@ -24,10 +24,10 @@ class TrainerDelay(commands.Cog):
         self.trainer_cache = {}
 
     @commands.group()
-    async def trainer(self, ctx):
+    async def trainers(self, ctx):
         pass
 
-    @trainer.command()
+    @trainers.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
@@ -36,7 +36,7 @@ class TrainerDelay(commands.Cog):
             channels.append(channel.id)
             await ctx.send(f"{channel.mention} set as a news feed channel.")
 
-    @trainer.command()
+    @trainers.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id not in channels:
@@ -45,7 +45,7 @@ class TrainerDelay(commands.Cog):
             channels.remove(channel.id)
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
 
-    @trainer.command()
+    @trainers.command()
     async def listchannels(self, ctx):
         channels = await self.config.guild(ctx.guild).channels()
         if not channels:
