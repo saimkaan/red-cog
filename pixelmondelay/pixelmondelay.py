@@ -94,6 +94,7 @@ class PixelmonDelay(commands.Cog):
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
             logging.info(f"Message for Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+        self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         await asyncio.sleep(240)
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)

@@ -94,6 +94,7 @@ class Trainer(commands.Cog):
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
             logging.info(f"Message for Trainer token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+        self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         if last_decimal_value is None or last_decimal_value != decimal_value:
             trainer_data = await self.fetch_trainer_data(token_id)
             if trainer_data:
