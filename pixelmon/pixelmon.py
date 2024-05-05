@@ -100,6 +100,7 @@ class Pixelmon(commands.Cog):
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
             logging.info(f"Message for pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
@@ -109,18 +110,20 @@ class Pixelmon(commands.Cog):
                     relics_value = self.calculate_relics_value(pixelmon_data)
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
-                        relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
-                        message = f"@everyone\n**{rarity_atts['rarity']}** Pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
-                        for guild in self.bot.guilds:
-                            channels = await self.config.guild(guild).channels()
-                            for channel_id in channels:
-                                channel = guild.get_channel(channel_id)
-                                delay = self.channels.get(channel.id, None)
-                                if delay is not None:
-                                    await asyncio.sleep(delay)  # Add delay for specific channel
-                                await self.post_message(channel, message)
+                        if decimal_value <= total_price:
+                            relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
+                            message = f"@everyone\n**{rarity_atts['rarity']}** Pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                            for guild in self.bot.guilds:
+                                channels = await self.config.guild(guild).channels()
+                                for channel_id in channels:
+                                    channel = guild.get_channel(channel_id)
+                                    delay = self.channels.get(channel.id, None)
+                                    if delay is not None:
+                                        await asyncio.sleep(delay)  # Add delay for specific channel
+                                    await self.post_message(channel, message)
             else:
                 pass
+
 
     async def fetch_pixelmon_data(self, pixelmon_id):
         cached_data = self.pixelmon_cache.get(pixelmon_id)
