@@ -96,10 +96,10 @@ class Pixelmon(commands.Cog):
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
         last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            logging.info(f"New message for Pixelmon token ID {token_id} with decimal value {decimal_value}")
+            logging.info(f"New message for pixelmon token ID {token_id} with decimal value {decimal_value}")
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            logging.info(f"Message for Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+            logging.info(f"Message for pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
@@ -111,16 +111,14 @@ class Pixelmon(commands.Cog):
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
                         message = f"@everyone\n**{rarity_atts['rarity']}** Pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
-                        if decimal_value <= total_price:
-                            self.last_decimal_values[token_id] = decimal_value
-                            for guild in self.bot.guilds:
-                                channels = await self.config.guild(guild).channels()
-                                for channel_id in channels:
-                                    channel = guild.get_channel(channel_id)
-                                    delay = self.channels.get(channel.id, None)
-                                    if delay is not None:
-                                        await asyncio.sleep(delay)
-                                    await self.post_message(channel, message)
+                        for guild in self.bot.guilds:
+                            channels = await self.config.guild(guild).channels()
+                            for channel_id in channels:
+                                channel = guild.get_channel(channel_id)
+                                delay = self.channels.get(channel.id, None)
+                                if delay is not None:
+                                    await asyncio.sleep(delay)  # Add delay for specific channel
+                                await self.post_message(channel, message)
             else:
                 pass
 
