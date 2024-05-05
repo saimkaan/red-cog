@@ -47,12 +47,20 @@ class Trainer(commands.Cog):
 
     @trainer.command()
     async def listchannels(self, ctx):
-        channels = await self.config.guild(ctx.guild).channels()
-        if not channels:
+        if not self.channels:
             await ctx.send("No news feed channels set.")
             return
-        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
-        await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
+        
+        channel_info = []
+        for channel_id, delay in self.channels.items():
+            channel_mention = f"<#{channel_id}>"
+            if delay is not None:
+                channel_info.append(f"{channel_mention} (Delay: {delay} seconds)")
+            else:
+                channel_info.append(channel_mention)
+
+        await ctx.send("News feed channels:\n" + "\n".join(channel_info))
+
     
     async def post_message(self, channel, message):
         delay = self.channels.get(channel.id, None)
