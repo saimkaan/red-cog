@@ -22,28 +22,28 @@ class Pixelmon(commands.Cog):
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
         self.pixelmon_cache = {}
+        self.channels = {}
 
     @commands.group()
     async def pixelmon(self, ctx):
         pass
 
     @pixelmon.command()
-    async def setchannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id in channels:
-                await ctx.send(f"{channel.mention} is already a news feed channel.")
-                return
-            channels.append(channel.id)
+    async def setchannel(self, ctx, channel: discord.TextChannel, delay: int = None):
+        if delay is not None:
+            self.channels[channel.id] = delay
+            await ctx.send(f"{channel.mention} set as a news feed channel with {delay} seconds delay.")
+        else:
+            self.channels[channel.id] = None
             await ctx.send(f"{channel.mention} set as a news feed channel.")
 
     @pixelmon.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id not in channels:
-                await ctx.send(f"{channel.mention} is not a news feed channel.")
-                return
-            channels.remove(channel.id)
+        if channel.id in self.channels:
+            del self.channels[channel.id]
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
+        else:
+            await ctx.send(f"{channel.mention} is not a news feed channel.")
 
     @pixelmon.command()
     async def listchannels(self, ctx):
@@ -53,6 +53,13 @@ class Pixelmon(commands.Cog):
             return
         channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
+    
+    async def post_message(self, channel, message):
+        delay = self.channels.get(channel.id, None)
+        if delay is not None:
+            await asyncio.sleep(delay)
+        allowed_mentions = discord.AllowedMentions(everyone=True)
+        await channel.send(message, allowed_mentions=allowed_mentions)
 
     async def fetch_data(self):
         while True:
@@ -81,20 +88,18 @@ class Pixelmon(commands.Cog):
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
 
-    
     async def fetch_pixelmon_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
         for data in token_data:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value'], data['exchange_kind']), loop)
 
-
     async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
         last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            logging.info(f"New message for Pixelmon token ID {token_id} on exchange {exchange_kind} with decimal value {decimal_value}")
+            logging.info(f"New message for Pixelmon token ID {token_id} with decimal value {decimal_value}")
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            logging.info(f"Message for Pixelmon token ID {token_id} on exchange {exchange_kind} with decimal value {decimal_value} already posted, skipping.")
+            logging.info(f"Message for Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
@@ -105,15 +110,17 @@ class Pixelmon(commands.Cog):
                     if relics_value >= 0.15:
                         total_price = floor_price + relics_value
                         relics_info = "\n".join([f"{relic_type.capitalize()} Relic Count: {count}" for relic_type, count in pixelmon_data.items()])
-                        message = f"@everyone\n**{rarity_atts['Rarity']}** pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
+                        message = f"@everyone\n**{rarity_atts['rarity']}** Pixelmon: {token_id}\n{relics_info}\nFloor Price: {floor_price:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {decimal_value:.4f} ETH**\n{blur_link}"
                         if decimal_value <= total_price:
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone=True)
-                                    await channel.send(message, allowed_mentions=allowed_mentions)
+                                    delay = self.channels.get(channel.id, None)
+                                    if delay is not None:
+                                        await asyncio.sleep(delay)
+                                    await self.post_message(channel, message)
             else:
                 pass
 

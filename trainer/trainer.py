@@ -22,28 +22,28 @@ class Trainer(commands.Cog):
         self.task = asyncio.create_task(self.fetch_data())
         self.last_decimal_values = {}
         self.trainer_cache = {}
+        self.channels = {}
 
     @commands.group()
     async def trainer(self, ctx):
         pass
 
     @trainer.command()
-    async def setchannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id in channels:
-                await ctx.send(f"{channel.mention} is already a news feed channel.")
-                return
-            channels.append(channel.id)
+    async def setchannel(self, ctx, channel: discord.TextChannel, delay: int = None):
+        if delay is not None:
+            self.channels[channel.id] = delay
+            await ctx.send(f"{channel.mention} set as a news feed channel with {delay} seconds delay.")
+        else:
+            self.channels[channel.id] = None
             await ctx.send(f"{channel.mention} set as a news feed channel.")
 
     @trainer.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
-        async with self.config.guild(ctx.guild).channels() as channels:
-            if channel.id not in channels:
-                await ctx.send(f"{channel.mention} is not a news feed channel.")
-                return
-            channels.remove(channel.id)
+        if channel.id in self.channels:
+            del self.channels[channel.id]
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
+        else:
+            await ctx.send(f"{channel.mention} is not a news feed channel.")
 
     @trainer.command()
     async def listchannels(self, ctx):
@@ -53,6 +53,13 @@ class Trainer(commands.Cog):
             return
         channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
+    
+    async def post_message(self, channel, message):
+        delay = self.channels.get(channel.id, None)
+        if delay is not None:
+            await asyncio.sleep(delay)
+        allowed_mentions = discord.AllowedMentions(everyone=True)
+        await channel.send(message, allowed_mentions=allowed_mentions)
 
     async def fetch_data(self):
         while True:
@@ -94,6 +101,7 @@ class Trainer(commands.Cog):
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
             logging.info(f"Message for Trainer token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+
         if last_decimal_value is None or last_decimal_value != decimal_value:
             trainer_data = await self.fetch_trainer_data(token_id)
             if trainer_data:
@@ -111,10 +119,13 @@ class Trainer(commands.Cog):
                                 channels = await self.config.guild(guild).channels()
                                 for channel_id in channels:
                                     channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone=True)
-                                    await channel.send(message, allowed_mentions=allowed_mentions)
+                                    delay = self.channels.get(channel.id, None)
+                                    if delay is not None:
+                                        await asyncio.sleep(delay)  # Add delay for specific channel
+                                    await self.post_message(channel, message)
             else:
                 pass
+
 
     async def fetch_trainer_data(self, trainer_id):
         cached_data = self.trainer_cache.get(trainer_id)
