@@ -14,7 +14,7 @@ class TrainerDelay(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.headers = {
             "accept": "*/*",
-            "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
+            "x-api-key": "60bf8680-7718-50eb-9340-39d85f05cf7d"
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=20"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
