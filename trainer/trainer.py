@@ -65,21 +65,22 @@ class Trainer(commands.Cog):
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(60)
 
-    def fetch_reservoir_data(self):
+    async def fetch_reservoir_data(self):
         try:
-            response = requests.get(self.url_reservoir, headers=self.headers)
-            data = response.json()
-            if 'orders' in data:
-                token_data = []
-                for order in data['orders']:
-                    token_id = order['criteria']['data']['token']['tokenId']
-                    decimal_value = order['price']['amount']['decimal']
-                    exchange_kind = order['kind']
-                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value, 'exchange_kind': exchange_kind})
-                return token_data
+            async with self.session.get(self.url_reservoir, headers=self.headers) as response:
+                data = await response.json()
+                if 'orders' in data:
+                    token_data = []
+                    for order in data['orders']:
+                        token_id = order['criteria']['data']['token']['tokenId']
+                        decimal_value = order['price']['amount']['decimal']
+                        exchange_kind = order['kind']
+                        token_data.append({'token_id': token_id, 'decimal_value': decimal_value, 'exchange_kind': exchange_kind})
+                    return token_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
+
 
     async def fetch_trainer_data_with_threads(self, token_data):
         loop = asyncio.get_event_loop()
