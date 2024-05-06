@@ -14,7 +14,7 @@ class PixelmonDelay(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.headers = {
             "accept": "*/*",
-            "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
+            "x-api-key": "60bf8680-7718-50eb-9340-39d85f05cf7d"
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x32973908faee0bf825a343000fe412ebe56f802a&limit=20"
         self.url_pixelmon = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
@@ -60,7 +60,7 @@ class PixelmonDelay(commands.Cog):
                 token_ids = self.fetch_reservoir_data()
                 if token_ids:
                     await self.fetch_pixelmon_data_with_threads(token_ids)
-                await asyncio.sleep(60)
+                await asyncio.sleep(20)
             except Exception as e:
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(360)
