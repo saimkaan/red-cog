@@ -8,13 +8,13 @@ import requests
 class TrainerDelay(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=20202020)
+        self.config = Config.get_conf(self, identifier=2222111)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
         self.headers = {
             "accept": "*/*",
-            "x-api-key": "60bf8680-7718-50eb-9340-39d85f05cf7d"
+            "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A0x8a3749936e723325c6b645a0901470cd9e790b94&limit=20"
         self.url_trainer = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
