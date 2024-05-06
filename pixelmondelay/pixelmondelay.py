@@ -65,22 +65,21 @@ class PixelmonDelay(commands.Cog):
                 logging.error(f"Error occurred while fetching data: {e}")
                 await asyncio.sleep(360)
 
-    async def fetch_reservoir_data(self):
+    def fetch_reservoir_data(self):
         try:
-            async with self.session.get(self.url_reservoir, headers=self.headers) as response:
-                data = await response.json()
-                if 'orders' in data:
-                    token_data = []
-                    for order in data['orders']:
-                        token_id = order['criteria']['data']['token']['tokenId']
-                        decimal_value = order['price']['amount']['decimal']
-                        exchange_kind = order['kind']
-                        token_data.append({'token_id': token_id, 'decimal_value': decimal_value, 'exchange_kind': exchange_kind})
-                    return token_data
+            response = requests.get(self.url_reservoir, headers=self.headers)
+            data = response.json()
+            if 'orders' in data:
+                token_data = []
+                for order in data['orders']:
+                    token_id = order['criteria']['data']['token']['tokenId']
+                    decimal_value = order['price']['amount']['decimal']
+                    exchange_kind = order['kind']
+                    token_data.append({'token_id': token_id, 'decimal_value': decimal_value, 'exchange_kind': exchange_kind})
+                return token_data
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
         return None
-
 
     
     async def fetch_pixelmon_data_with_threads(self, token_data):
