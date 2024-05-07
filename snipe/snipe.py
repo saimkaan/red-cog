@@ -4,7 +4,6 @@ import discord
 import asyncio
 import logging
 
-
 class Snipe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -54,13 +53,13 @@ class Snipe(commands.Cog):
         channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
 
-    async def fetch_data_for_addresses(self):
+    async def fetch_data_for_addresses(self, guild):
         try:
             for address in self.addresses:
                 url = self.url_reservoir.format(address=address)
                 async with self.session.get(url, headers=self.headers) as response:
                     data = await response.json()
-                    for channel_id in await self.config.guild(ctx.guild).channels():
+                    for channel_id in await self.config.guild(guild).channels():
                         channel = self.bot.get_channel(channel_id)
                         if channel:
                             await channel.send(f"Data for address {address}:\n{data}")
