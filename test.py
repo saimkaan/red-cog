@@ -15,7 +15,7 @@ relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009
 
 # Load existing log if available
 try:
-    with open("relics_log3.json", "r") as log_file:
+    with open("relics_log.json", "r") as log_file:
         relics_log = json.load(log_file)
 except FileNotFoundError:
     relics_log = {}
@@ -86,5 +86,5 @@ for token, address in contract_address.items():
         print("-------------------------")
 
 # Write the updated log to the file
-with open("relics_log3.json", "w") as log_file:
+with open("relics_log.json", "w") as log_file:
     json.dump(relics_log, log_file, indent=4)

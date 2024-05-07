@@ -1,36 +1,8 @@
 {
-    "3363": [
-        {
-            "relicsType": "bronze",
-            "count": 5
-        },
-        {
-            "relicsType": "gold",
-            "count": 2
-        }
-    ],
-    "6094": [
+    "4478": [
         {
             "relicsType": "wood",
-            "count": 15
-        },
-        {
-            "relicsType": "bronze",
-            "count": 13
-        },
-        {
-            "relicsType": "silver",
-            "count": 2
-        },
-        {
-            "relicsType": "gold",
-            "count": 2
-        }
-    ],
-    "2694": [
-        {
-            "relicsType": "wood",
-            "count": 2
+            "count": 8
         },
         {
             "relicsType": "bronze",
@@ -42,25 +14,24 @@
         },
         {
             "relicsType": "gold",
-            "count": 2
+            "count": 1
         }
     ],
-    "4478": [
+    "6094": [
         {
-            "relicsType": "bronze",
-            "count": 11
-        },
-        {
-            "relicsType": "silver",
-            "count": 4
-        },
-        {
-            "relicsType": "gold",
+            "relicsType": "wood",
             "count": 3
         },
         {
-            "relicsType": "diamond",
+            "relicsType": "bronze",
             "count": 2
+        }
+    ],
+    "3363": [],
+    "2694": [
+        {
+            "relicsType": "silver",
+            "count": 1
         }
     ]
 }
