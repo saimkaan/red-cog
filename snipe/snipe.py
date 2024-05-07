@@ -6,7 +6,7 @@ import discord
 class Snipe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=999888777)
+        self.config = Config.get_conf(self, identifier=444555)
         default_guild = {"channels": {}}
         self.config.register_guild(**default_guild)
         self.headers = {
@@ -37,7 +37,6 @@ class Snipe(commands.Cog):
         exchange = order['kind']
 
         if (token_id, price, exchange) in self.processed_orders:
-            print(f"Skipping order for token ID {token_id}, price {price}, and exchange {exchange} as it's already processed.")
             return
         self.processed_orders[(token_id, price, exchange)] = True
         attribute_key = "rarity" if token == "trainer" else "Rarity"
