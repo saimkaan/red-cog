@@ -94,7 +94,7 @@ class Snipe(commands.Cog):
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
     
     @snipe.command()
-    async def loop(self, ctx, interval: int = 20):
+    async def loop(self, interval: int = 20):
         async with aiohttp.ClientSession() as session:
             while True:
                 try:
