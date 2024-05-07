@@ -62,8 +62,39 @@ class Snipe(commands.Cog):
                                     allowed_mentions = discord.AllowedMentions(everyone=True)
                                     await channel.send(message, allowed_mentions=allowed_mentions)
 
-    @commands.command()
+    @commands.group()
     async def snipe(self, ctx):
+            pass
+
+    @snipe.command()
+    async def setchannel(self, ctx, channel: discord.TextChannel):
+        async with self.config.guild(ctx.guild).channels() as channels:
+            if channel.id in channels:
+                await ctx.send(f"{channel.mention} is already a news feed channel.")
+                return
+            channels.append(channel.id)
+            await ctx.send(f"{channel.mention} set as a news feed channel.")
+
+    @snipe.command()
+    async def removechannel(self, ctx, channel: discord.TextChannel):
+        async with self.config.guild(ctx.guild).channels() as channels:
+            if channel.id not in channels:
+                await ctx.send(f"{channel.mention} is not a news feed channel.")
+                return
+            channels.remove(channel.id)
+            await ctx.send(f"{channel.mention} removed as a news feed channel.")
+
+    @snipe.command()
+    async def listchannels(self, ctx):
+        channels = await self.config.guild(ctx.guild).channels()
+        if not channels:
+            await ctx.send("No news feed channels set.")
+            return
+        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
+        await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
+
+    @snipe.command()
+    async def now(self, ctx):
         async with aiohttp.ClientSession() as session:
             tasks = []
             for token, address in self.contract_address.items():
