@@ -92,6 +92,17 @@ class Snipe(commands.Cog):
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
     
     @snipe.command()
+    async def now(self, ctx):
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for token, address in self.contract_address.items():
+                url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+                data = await self.fetch_data(session, url_reservoir)
+                for order in data['orders']:
+                    tasks.append(self.process_order(session, token, address, order))
+            await asyncio.gather(*tasks)
+    
+    @snipe.command()
     async def loop(self, ctx, interval: int = 20):
         async with aiohttp.ClientSession() as session:
             while True:
