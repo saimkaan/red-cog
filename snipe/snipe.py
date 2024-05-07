@@ -56,9 +56,12 @@ class Snipe(commands.Cog):
                 blur_link = f"https://blur.io/asset/{address}/{token_id}"
                 relics_data_str = "\n".join([f"{relic['relicsType'].capitalize()} Relic Count: {relic['count']}" for relic in relics_data])
                 message = f"@everyone\n**{attribute_rarity}** Trainer: {token_id}\n{relics_data_str}\nFloor Price: {attribute_floorprice[0]:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {price:.4f} ETH**\n{blur_link}"
-                channel = self.bot.get_channel(channel_id)
-                allowed_mentions = discord.AllowedMentions(everyone=True)
-                await channel.send(message, allowed_mentions=allowed_mentions)
+                for guild in self.bot.guilds:
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        allowed_mentions = discord.AllowedMentions(everyone=True)
+                        await channel.send(message, allowed_mentions=allowed_mentions)
 
     @commands.group()
     async def snipe(self, ctx):

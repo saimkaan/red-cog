@@ -61,7 +61,7 @@ async def main():
     async with aiohttp.ClientSession() as session:
         tasks = []
         for token, address in contract_address.items():
-            url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+            url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
             data = await fetch_data(session, url_reservoir)
             for order in data['orders']:
                 tasks.append(process_order(session, token, address, order))
