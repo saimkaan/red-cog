@@ -86,7 +86,7 @@ class Pixelmon(commands.Cog):
         for data in token_data:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value'], data['exchange_kind']), loop)
 
-    async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
+    async def fetch_and_print_pixelmon_data(self, ctx, token_id, decimal_value, exchange_kind):
         last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
             logging.info(f"New message for Pixelmon token ID {token_id} with decimal value {decimal_value}")
