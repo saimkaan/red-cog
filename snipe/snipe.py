@@ -20,7 +20,6 @@ class Snipe(commands.Cog):
             "trainer": "0x8a3749936e723325c6b645a0901470cd9e790b94",
             "pixelmon": "0x32973908faee0bf825a343000fe412ebe56f802a"
         }
-        self.loop_task = None
 
     async def fetch_data(self, session, url):
         async with session.get(url, headers=self.headers) as response:
@@ -113,23 +112,3 @@ class Snipe(commands.Cog):
                     await asyncio.sleep(60)
                 else:
                     await asyncio.sleep(interval)
-
-    @snipe.command()
-    async def start(self, ctx):
-        if self.loop_task is None or self.loop_task.done():
-            self.loop_task = asyncio.create_task(self.loop(ctx))
-
-    @snipe.command()
-    async def stop(self, ctx):
-        if self.loop_task and not self.loop_task.done():
-            self.loop_task.cancel()
-
-    @snipe.command()
-    async def unload(self, ctx):
-        if self.loop_task and not self.loop_task.done():
-            self.loop_task.cancel()
-        await self.bot.remove_cog("Snipe")
-        await ctx.send("Snipe cog has been unloaded.")
-
-def setup(bot):
-    bot.add_cog(Snipe(bot))
