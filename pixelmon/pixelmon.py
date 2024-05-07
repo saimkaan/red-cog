@@ -93,7 +93,6 @@ class Pixelmon(commands.Cog):
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
             logging.info(f"Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
-        await asyncio.sleep(delay)
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
@@ -112,6 +111,7 @@ class Pixelmon(commands.Cog):
                                 for channel_id, delay in channels.items():
                                     channel = guild.get_channel(int(channel_id))
                                     allowed_mentions = discord.AllowedMentions(everyone=True)
+                                    await asyncio.sleep(delay)
                                     await channel.send(message, allowed_mentions=allowed_mentions)
             else:
                 pass
