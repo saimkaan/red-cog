@@ -15,13 +15,15 @@ class Snipe(commands.Cog):
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
         }
-        self.addresses = [
-            "0x8a3749936e723325c6b645a0901470cd9e790b94",
-            "0x32973908faee0bf825a343000fe412ebe56f802a"
-        ]
+        self.nfttype = {
+            "trainer" : "0x8a3749936e723325c6b645a0901470cd9e790b94",
+            "pixelmon" : "0x32973908faee0bf825a343000fe412ebe56f802a"
+        }
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+        self.url_relics = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
         self.data_list = []
-        self.task = asyncio.create_task(self.fetch_data_for_addresses())
+        self.relics_cache = {}
+        self.task = asyncio.create_task(self.run_task())
 
     @commands.group()
     async def snipe(self, ctx):
@@ -56,7 +58,7 @@ class Snipe(commands.Cog):
     
     async def fetch_data_for_addresses(self):
         try:
-            for address in self.addresses:
+            for nfttype, address in self.nfttype.items():
                 url = self.url_reservoir.format(address=address)
                 async with self.session.get(url, headers=self.headers) as response:
                     data = await response.json()
@@ -67,6 +69,25 @@ class Snipe(commands.Cog):
                         logging.info(f"Token ID: {token_id}, Exchange: {exchange}, Price: {price}")       
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
+    
+    async def fetch_trainer_data(self, token_id, nfttype):
+        relics_cache = self.relics_cache.get(token_id)
+        if relics_cache:
+            return relics_cache
+        try:
+            payload = {'nftType': nfttype, 'tokenId': str(token_id)}
+            async with self.session.post(self.url_relics, json=payload) as response:
+                data = await response.json()
+                if 'result' in data and 'response' in data['result']:
+                    relics_response = data['result']['response']['relicsResponse']
+                    relics_data = {}
+                    for relic in relics_response:
+                        relics_data[relic['relicsType']] = relic['count']
+                    self.relics_cache[token_id] = relics_data
+                    return relics_data
+        except Exception as e:
+            logging.error(f"Error occurred while fetching data from trainer API: {e}")
+        return None
 
     def cog_unload(self):
         if self.task:
