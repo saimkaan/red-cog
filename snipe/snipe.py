@@ -64,8 +64,7 @@ class Snipe(commands.Cog):
                         token_id = order['criteria']['data']['token']['tokenId']
                         price = order['price']['amount']['decimal']
                         exchange = order['kind']
-                        self.data_list.append({"token_id": token_id, "price": price, "exchange": exchange})
-            logging.info(f"Fetched data: {self.data_list}")          
+                        logging.info(f"Token ID: {token_id}, Exchange: {exchange}, Price: {price}")       
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Reservoir API: {e}")
 
