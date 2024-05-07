@@ -53,7 +53,7 @@ class Snipe(commands.Cog):
         channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
     
-    async def fetch_data_for_addresses(self, guild):
+    async def fetch_data_for_addresses(self):
         try:
             for address in self.addresses:
                 url = self.url_reservoir.format(address=address)
