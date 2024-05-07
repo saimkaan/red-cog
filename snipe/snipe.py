@@ -95,12 +95,16 @@ class Snipe(commands.Cog):
     async def now(self, ctx):
         async with aiohttp.ClientSession() as session:
             tasks = []
+            channels = await self.config.guild(ctx.guild).channels()
             for token, address in self.contract_address.items():
-                url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+                url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
                 data = await self.fetch_data(session, url_reservoir)
                 for order in data['orders']:
-                    tasks.append(self.process_order(session, token, address, order))
+                    for channel_id, channel_data in channels.items():
+                        tasks.append(self.process_order(session, token, address, order, channel_id))
+                        await asyncio.sleep(channel_data.get("delay", 0))  # Applying the delay
             await asyncio.gather(*tasks)
+
     
     @snipe.command()
     async def loop(self, ctx, interval: int = 20):
@@ -109,7 +113,7 @@ class Snipe(commands.Cog):
                 try:
                     tasks = []
                     for token, address in self.contract_address.items():
-                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
                         data = await self.fetch_data(session, url_reservoir)
                         for order in data['orders']:
                             for channel_id, channel_data in (await self.config.guild(ctx.guild).channels()).items():
