@@ -48,11 +48,17 @@ class Pixelmon(commands.Cog):
         if not channels:
             await ctx.send("No news feed channels set.")
             return
+
         channel_mentions = []
-        for channel_id, delay in channels.items():
-            channel = ctx.guild.get_channel(channel_id)
-            channel_mentions.append(f"{channel.mention} (Delay: {delay} seconds)")
+        for channel_id, delay in channels.items():  # Fix here
+            channel = self.bot.get_channel(channel_id)  # Retrieve channel object using ID
+            if channel:
+                channel_mentions.append(f"{channel.mention} (Delay: {delay} seconds)")
+            else:
+                channel_mentions.append(f"Channel ID: {channel_id} (Delay: {delay} seconds)")
+
         await ctx.send("News feed channels with delays:\n" + "\n".join(channel_mentions))
+
 
     async def fetch_data(self):
         while True:
