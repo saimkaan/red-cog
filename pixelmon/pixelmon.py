@@ -8,7 +8,7 @@ import requests
 class Pixelmon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=111222)
+        self.config = Config.get_conf(self, identifier=111222111)
         default_guild = {"channels": {}}
         self.config.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
