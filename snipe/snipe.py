@@ -6,7 +6,7 @@ import discord
 class Snipe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=111222)
+        self.config = Config.get_conf(self, identifier=123443211234)
         default_guild = {"channels": {}}
         self.config.register_guild(**default_guild)
         self.headers = {
