@@ -2,6 +2,9 @@ from redbot.core import commands, Config
 import aiohttp
 import discord
 import asyncio
+import logging
+import traceback
+
 
 class Snipe(commands.Cog):
     def __init__(self, bot):
@@ -20,6 +23,13 @@ class Snipe(commands.Cog):
         ]
         self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{{address}}&limit=20"
         self.task = asyncio.create_task(self.fetch_data_for_addresses())
+
+        self.logger = logging.getLogger("pixelmon_errors")
+        self.logger.setLevel(logging.ERROR)
+        handler = logging.FileHandler(filename="pixelmon_errors.log", encoding="utf-8", mode="a")
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
 
     @commands.group()
     async def snipe(self, ctx):
@@ -63,8 +73,8 @@ class Snipe(commands.Cog):
                         if channel:
                             await channel.send(f"Data for address {address}:\n{data}")
         except Exception as e:
-            # Handle exceptions here
-            pass
+            self.logger.error("An error occurred in fetch_data_for_addresses:")
+            self.logger.error(traceback.format_exc())
 
     def cog_unload(self):
         asyncio.create_task(self.session.close())
