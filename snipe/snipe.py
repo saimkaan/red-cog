@@ -9,6 +9,7 @@ class Snipe(commands.Cog):
         self.config = Config.get_conf(self, identifier=1212555)
         default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
+        self.session = aiohttp.ClientSession()
         self.headers = {
             "accept": "*/*",
             "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
@@ -20,6 +21,7 @@ class Snipe(commands.Cog):
             "trainer": "0x8a3749936e723325c6b645a0901470cd9e790b94",
             "pixelmon": "0x32973908faee0bf825a343000fe412ebe56f802a"
         }
+        self.task = None
 
     async def fetch_data(self, session, url):
         async with session.get(url, headers=self.headers) as response:
@@ -107,10 +109,11 @@ class Snipe(commands.Cog):
     
     @snipe.command()
     async def loop(self, ctx, interval: int = 20):
-        await self.fetch_orders(ctx, interval)
+        self.task = asyncio.create_task(self.fetch_orders(ctx, interval))
+        await ctx.send("Loop task started.")
 
     async def fetch_orders(self, ctx, interval):
-        async with aiohttp.ClientSession() as session:
+        async with self.session as session:
             while True:
                 try:
                     tasks = []
@@ -126,3 +129,9 @@ class Snipe(commands.Cog):
                     await asyncio.sleep(60)
                 else:
                     await asyncio.sleep(interval)
+
+    def cog_unload(self):
+        if self.task:
+            self.task.cancel()
+            self.task = None
+        asyncio.create_task(self.session.close())
