@@ -19,8 +19,8 @@ class Snipe(commands.Cog):
             "0x8a3749936e723325c6b645a0901470cd9e790b94",
             "0x32973908faee0bf825a343000fe412ebe56f802a"
         ]
-        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{{address}}&limit=20"
-        self.data_list = []  # List to store fetched data
+        self.url_reservoir = "https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+        self.data_list = []
         self.task = asyncio.create_task(self.fetch_data_for_addresses())
 
     @commands.group()
@@ -64,7 +64,6 @@ class Snipe(commands.Cog):
                         token_id = order['criteria']['data']['token']['tokenId']
                         price = order['price']['amount']['decimal']
                         exchange = order['kind']
-                        # Append fetched data to the list
                         self.data_list.append({"token_id": token_id, "price": price, "exchange": exchange})
             logging.info(f"Fetched data: {self.data_list}")          
         except Exception as e:
