@@ -1,8 +1,9 @@
 import requests
+import json
 
 contract_address = {
-    "trainer": "0x32973908faee0bf825a343000fe412ebe56f802a",
-    "pixelmon": "0x8a3749936e723325c6b645a0901470cd9e790b94"
+    "trainer": "0x8a3749936e723325c6b645a0901470cd9e790b94",
+    "pixelmon": "0x32973908faee0bf825a343000fe412ebe56f802a"
 }
 
 headers = {
@@ -11,6 +12,13 @@ headers = {
 }
 
 relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024, 'unRevealed': 0.0024}
+
+# Load existing log if available
+try:
+    with open("relics_log3.json", "r") as log_file:
+        relics_log = json.load(log_file)
+except FileNotFoundError:
+    relics_log = {}
 
 for token, address in contract_address.items():
     url = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=2"
@@ -27,9 +35,9 @@ for token, address in contract_address.items():
         print("Exchange:", exchange)
 
         # Fetch url_attribute API
-        if token == "pixelmon":
+        if token == "trainer":
             attribute_key = "rarity"
-        elif token == "trainer":
+        elif token == "pixelmon":
             attribute_key = "Rarity"
         url_attribute = f"https://api.reservoir.tools/collections/{address}/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
         response_attribute = requests.get(url_attribute, headers=headers)
@@ -42,28 +50,41 @@ for token, address in contract_address.items():
         else:
             print("Attribute Value: Not available")
 
-        # Fetch url_relics API
-        url_relics = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
-        payload = {'nftType': token, 'tokenId': str(token_id)}
-        response_relics = requests.post(url_relics, json=payload)
-        relics_data = response_relics.json().get('result', {}).get('response', {}).get('relicsResponse', [])
-        if relics_data:
-            print("Relics Count:")
-            relics_value = 0
-            for relic in relics_data:
-                relic_type = relic['relicsType']
-                relic_count = relic['count']
-                relic_value = relic_values.get(relic_type, 0) * relic_count
-                relics_value += relic_value
-                print(f"{relic_type}: {relic_count} (Value: {relic_value})")
-            print("Total Relics Value:", relics_value)
-            
-            # Check if the floor price plus the relics value is bigger than the price
-            if attribute_floorprice and len(attribute_floorprice) > 0:
-                floor_price = float(attribute_floorprice[0])
-                if floor_price + relics_value > float(price):
-                    print("Floor price + Relics value is bigger than the price!")
+        # Check if relics data is in the log
+        if token_id in relics_log:
+            relics_data = relics_log[token_id]
+            print("Relics Count (From Log):")
         else:
-            print("Relics Count: Not available")
+            # Fetch url_relics API based on the token type
+            if token == "trainer":
+                url_relics = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+            elif token == "pixelmon":
+                url_relics = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
+            payload = {'nftType': token, 'tokenId': str(token_id)}
+            response_relics = requests.post(url_relics, json=payload)
+            relics_data = response_relics.json().get('result', {}).get('response', {}).get('relicsResponse', [])
+            # Update the log with new data
+            relics_log[token_id] = relics_data
+            print("Relics Count (Fetched from API):")
+
+        relics_value = 0
+        for relic in relics_data:
+            relic_type = relic['relicsType']
+            relic_count = relic['count']
+            relic_value = relic_values.get(relic_type, 0) * relic_count
+            relics_value += relic_value
+            if relic_value >= 0.15:
+                print(f"{relic_type}: {relic_count} (Value: {relic_value})")
+        print("Total Relics Value:", relics_value)
+
+        # Check if attribute_floorprice + relics_value <= price
+        if attribute_floorprice and len(attribute_floorprice) > 0 and relics_value >= 0.15:
+            floor_price = float(attribute_floorprice[0])
+            if floor_price + relics_value >= float(price):
+                print("Floor price + Relics value is less than or equal to the price!")
 
         print("-------------------------")
+
+# Write the updated log to the file
+with open("relics_log3.json", "w") as log_file:
+    json.dump(relics_log, log_file, indent=4)
