@@ -6,8 +6,8 @@ import discord
 class Snipe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=444555)
-        default_guild = {"channels": {}}
+        self.config = Config.get_conf(self, identifier=1212555)
+        default_guild = {"channels": []}
         self.config.register_guild(**default_guild)
         self.headers = {
             "accept": "*/*",
@@ -31,7 +31,7 @@ class Snipe(commands.Cog):
             json_data = await response.json()
             return json_data.get('result', {}).get('response', {}).get('relicsResponse', [])
 
-    async def process_order(self, session, token, address, order, channel_id):
+    async def process_order(self, session, token, address, order):
         token_id = order['criteria']['data']['token']['tokenId']
         price = order['price']['amount']['decimal']
         exchange = order['kind']
@@ -57,24 +57,24 @@ class Snipe(commands.Cog):
                 relics_data_str = "\n".join([f"{relic['relicsType'].capitalize()} Relic Count: {relic['count']}" for relic in relics_data])
                 message = f"@everyone\n**{attribute_rarity}** Trainer: {token_id}\n{relics_data_str}\nFloor Price: {attribute_floorprice[0]:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {price:.4f} ETH**\n{blur_link}"
                 for guild in self.bot.guilds:
-                    channels = await self.config.guild(guild).channels()
-                    for channel_id in channels:
-                        channel = guild.get_channel(channel_id)
-                        allowed_mentions = discord.AllowedMentions(everyone=True)
-                        await channel.send(message, allowed_mentions=allowed_mentions)
+                                channels = await self.config.guild(guild).channels()
+                                for channel_id in channels:
+                                    channel = guild.get_channel(channel_id)
+                                    allowed_mentions = discord.AllowedMentions(everyone=True)
+                                    await channel.send(message, allowed_mentions=allowed_mentions)
 
     @commands.group()
     async def snipe(self, ctx):
-        pass
+            pass
 
     @snipe.command()
-    async def setchannel(self, ctx, channel: discord.TextChannel, delay: int = 0):
+    async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
                 await ctx.send(f"{channel.mention} is already a news feed channel.")
                 return
-            channels[channel.id] = {"delay": delay}  # Store channel with delay
-            await ctx.send(f"{channel.mention} set as a news feed channel with delay of {delay} seconds.")
+            channels.append(channel.id)
+            await ctx.send(f"{channel.mention} set as a news feed channel.")
 
     @snipe.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
@@ -82,7 +82,7 @@ class Snipe(commands.Cog):
             if channel.id not in channels:
                 await ctx.send(f"{channel.mention} is not a news feed channel.")
                 return
-            del channels[channel.id]
+            channels.remove(channel.id)
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
 
     @snipe.command()
@@ -91,37 +91,34 @@ class Snipe(commands.Cog):
         if not channels:
             await ctx.send("No news feed channels set.")
             return
-        channel_mentions = [f"<#{channel_id}> (Delay: {channel_data.get('delay', 0)}s)" for channel_id, channel_data in channels.items()]
+        channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
-    
+
     @snipe.command()
     async def now(self, ctx):
         async with aiohttp.ClientSession() as session:
             tasks = []
-            channels = await self.config.guild(ctx.guild).channels()
             for token, address in self.contract_address.items():
-                url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
+                url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
                 data = await self.fetch_data(session, url_reservoir)
                 for order in data['orders']:
-                    for channel_id, channel_data in channels.items():
-                        tasks.append(self.process_order(session, token, address, order, channel_id))
-                        await asyncio.sleep(channel_data.get("delay", 0))  # Applying the delay
+                    tasks.append(self.process_order(session, token, address, order))
             await asyncio.gather(*tasks)
-
     
     @snipe.command()
     async def loop(self, ctx, interval: int = 20):
+        await self.fetch_orders(ctx, interval)
+
+    async def fetch_orders(self, ctx, interval):
         async with aiohttp.ClientSession() as session:
             while True:
                 try:
                     tasks = []
                     for token, address in self.contract_address.items():
-                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
+                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
                         data = await self.fetch_data(session, url_reservoir)
                         for order in data['orders']:
-                            for channel_id, channel_data in (await self.config.guild(ctx.guild).channels()).items():
-                                tasks.append(self.process_order(session, token, address, order, channel_id))
-                                await asyncio.sleep(channel_data.get("delay", 0))  # Applying the delay
+                            tasks.append(self.process_order(session, token, address, order))
                     await asyncio.gather(*tasks)
                 except Exception as e:
                     print(f"An error occurred: {e}")
