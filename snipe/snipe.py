@@ -35,7 +35,6 @@ class Snipe(commands.Cog):
         token_id = order['criteria']['data']['token']['tokenId']
         price = order['price']['amount']['decimal']
         exchange = order['kind']
-
         if (token_id, price, exchange) in self.processed_orders:
             print(f"Skipping order for token ID {token_id}, price {price}, and exchange {exchange} as it's already processed.")
             return
@@ -116,7 +115,7 @@ class Snipe(commands.Cog):
                 try:
                     tasks = []
                     for token, address in self.contract_address.items():
-                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
+                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
                         data = await self.fetch_data(session, url_reservoir)
                         for order in data['orders']:
                             tasks.append(self.process_order(session, token, address, order))
