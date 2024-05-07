@@ -3,9 +3,8 @@ import aiohttp
 import asyncio
 import discord
 import logging
-import requests
 
-class Trainer(commands.Cog):
+class Snipe(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=222111)
@@ -24,10 +23,10 @@ class Trainer(commands.Cog):
         self.task = asyncio.create_task(self.fetch_data_for_addresses())
 
     @commands.group()
-    async def trainer(self, ctx):
+    async def snipe(self, ctx):
         pass
 
-    @trainer.command()
+    @snipe.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id in channels:
@@ -36,7 +35,7 @@ class Trainer(commands.Cog):
             channels.append(channel.id)
             await ctx.send(f"{channel.mention} set as a news feed channel.")
 
-    @trainer.command()
+    @snipe.command()
     async def removechannel(self, ctx, channel: discord.TextChannel):
         async with self.config.guild(ctx.guild).channels() as channels:
             if channel.id not in channels:
@@ -45,7 +44,7 @@ class Trainer(commands.Cog):
             channels.remove(channel.id)
             await ctx.send(f"{channel.mention} removed as a news feed channel.")
 
-    @trainer.command()
+    @snipe.command()
     async def listchannels(self, ctx):
         channels = await self.config.guild(ctx.guild).channels()
         if not channels:
