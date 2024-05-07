@@ -37,6 +37,7 @@ class Snipe(commands.Cog):
         exchange = order['kind']
 
         if (token_id, price, exchange) in self.processed_orders:
+            print(f"Skipping order for token ID {token_id}, price {price}, and exchange {exchange} as it's already processed.")
             return
         self.processed_orders[(token_id, price, exchange)] = True
         attribute_key = "rarity" if token == "trainer" else "Rarity"
