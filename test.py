@@ -10,6 +10,8 @@ headers = {
     "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
 }
 
+relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024, 'unRevealed': 0.0024}
+
 for token, address in contract_address.items():
     url = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=2"
     response = requests.get(url, headers=headers)
@@ -34,7 +36,7 @@ for token, address in contract_address.items():
         attributes_data = response_attribute.json().get('attributes', [])
         if attributes_data:
             attribute_rarity = attributes_data[0]['value']
-            attribute_floorprice = attributes_data[0].get('floorAskPrices', 'Not available')
+            attribute_floorprice = attributes_data[0].get('floorAskPrices', [])
             print("Rarity:", attribute_rarity)
             print("Floor Price:", attribute_floorprice)
         else:
@@ -47,8 +49,20 @@ for token, address in contract_address.items():
         relics_data = response_relics.json().get('result', {}).get('response', {}).get('relicsResponse', [])
         if relics_data:
             print("Relics Count:")
+            relics_value = 0
             for relic in relics_data:
-                print(f"{relic['relicsType']}: {relic['count']}")
+                relic_type = relic['relicsType']
+                relic_count = relic['count']
+                relic_value = relic_values.get(relic_type, 0) * relic_count
+                relics_value += relic_value
+                print(f"{relic_type}: {relic_count} (Value: {relic_value})")
+            print("Total Relics Value:", relics_value)
+            
+            # Check if the floor price plus the relics value is bigger than the price
+            if attribute_floorprice and len(attribute_floorprice) > 0:
+                floor_price = float(attribute_floorprice[0])
+                if floor_price + relics_value > float(price):
+                    print("Floor price + Relics value is bigger than the price!")
         else:
             print("Relics Count: Not available")
 
