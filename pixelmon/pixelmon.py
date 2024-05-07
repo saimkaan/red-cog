@@ -86,19 +86,14 @@ class Pixelmon(commands.Cog):
         for data in token_data:
             asyncio.run_coroutine_threadsafe(self.fetch_and_print_pixelmon_data(data['token_id'], data['decimal_value'], data['exchange_kind']), loop)
 
-    async def fetch_and_print_pixelmon_data(self, ctx, token_id, decimal_value, exchange_kind):
+    async def fetch_and_print_pixelmon_data(self, token_id, decimal_value, exchange_kind):
         last_decimal_value = self.last_decimal_values.get((token_id, exchange_kind))
         if last_decimal_value is None or last_decimal_value != decimal_value:
-            logging.info(f"New message for Pixelmon token ID {token_id} with decimal value {decimal_value}")
+            logging.info(f"New Pixelmon token ID {token_id} with decimal value {decimal_value}")
             self.last_decimal_values[(token_id, exchange_kind)] = decimal_value
         else:
-            logging.info(f"Message for Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
-        for guild in self.bot.guilds:
-            channels = await self.config.guild(guild).channels()
-            for channel_id, delay in channels.items():
-                if int(channel_id) == ctx.channel.id:
-                    await asyncio.sleep(delay)
-                    break
+            logging.info(f"Pixelmon token ID {token_id} with decimal value {decimal_value} already posted, skipping.")
+        await asyncio.sleep(delay)
         if last_decimal_value is None or last_decimal_value != decimal_value:
             pixelmon_data = await self.fetch_pixelmon_data(token_id)
             if pixelmon_data:
@@ -114,13 +109,12 @@ class Pixelmon(commands.Cog):
                             self.last_decimal_values[token_id] = decimal_value
                             for guild in self.bot.guilds:
                                 channels = await self.config.guild(guild).channels()
-                                for channel_id in channels:
-                                    channel = guild.get_channel(channel_id)
+                                for channel_id, delay in channels.items():
+                                    channel = guild.get_channel(int(channel_id))
                                     allowed_mentions = discord.AllowedMentions(everyone=True)
                                     await channel.send(message, allowed_mentions=allowed_mentions)
             else:
                 pass
-
 
     async def fetch_pixelmon_data(self, pixelmon_id):
         cached_data = self.pixelmon_cache.get(pixelmon_id)
