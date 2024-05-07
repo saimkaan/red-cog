@@ -111,7 +111,8 @@ class Pixelmon(commands.Cog):
                                 for channel_id, delay in channels.items():
                                     channel = guild.get_channel(int(channel_id))
                                     allowed_mentions = discord.AllowedMentions(everyone=True)
-                                    asyncio.sleep(delay)  # Add delay here
+                                    if delay > 0:
+                                        await asyncio.sleep(delay)  # Only sleep if delay is greater than 0
                                     await channel.send(message, allowed_mentions=allowed_mentions)
             else:
                 pass
