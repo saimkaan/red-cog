@@ -59,11 +59,14 @@ class Snipe(commands.Cog):
                 relics_data_str = "\n".join([f"{relic['relicsType'].capitalize()} Relic Count: {relic['count']}" for relic in relics_data])
                 message = f"@everyone\n**{attribute_rarity}** Trainer: {token_id}\n{relics_data_str}\nFloor Price: {attribute_floorprice[0]:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {price:.4f} ETH**\n{blur_link}"
                 for guild in self.bot.guilds:
-                                channels = await self.config.guild(guild).channels()
-                                for channel_id in channels:
-                                    channel = guild.get_channel(channel_id)
-                                    allowed_mentions = discord.AllowedMentions(everyone=True)
-                                    await channel.send(message, allowed_mentions=allowed_mentions)
+                    channels = await self.config.guild(guild).channels()
+                    for channel_id in channels:
+                        channel = guild.get_channel(channel_id)
+                        if channel:
+                            allowed_mentions = discord.AllowedMentions(everyone=True)
+                            await channel.send(message, allowed_mentions=allowed_mentions)
+                        else:
+                            print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
 
     @commands.group()
     async def snipe(self, ctx):
@@ -95,17 +98,6 @@ class Snipe(commands.Cog):
             return
         channel_mentions = [f"<#{channel_id}>" for channel_id in channels]
         await ctx.send(f"News feed channels: {', '.join(channel_mentions)}")
-
-    @snipe.command()
-    async def now(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            tasks = []
-            for token, address in self.contract_address.items():
-                url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
-                data = await self.fetch_data(session, url_reservoir)
-                for order in data['orders']:
-                    tasks.append(self.process_order(session, token, address, order))
-            await asyncio.gather(*tasks)
     
     @snipe.command()
     async def loop(self, ctx, interval: int = 20):
@@ -118,7 +110,7 @@ class Snipe(commands.Cog):
                 try:
                     tasks = []
                     for token, address in self.contract_address.items():
-                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=10"
+                        url_reservoir = f"https://api.reservoir.tools/orders/asks/v5?tokenSetId=contract%3A{address}&limit=20"
                         data = await self.fetch_data(session, url_reservoir)
                         for order in data['orders']:
                             tasks.append(self.process_order(session, token, address, order))
