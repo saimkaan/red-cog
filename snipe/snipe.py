@@ -118,7 +118,7 @@ class Snipe(commands.Cog):
                 except Exception as e:
                     print(f"An error occurred: {e}")
                     print("Retrying in 60 seconds...")
-                    await asyncio.sleep(60)
+                    await asyncio.sleep(360)
                 else:
                     await asyncio.sleep(interval)
 
