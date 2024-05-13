@@ -57,7 +57,7 @@ class Snipe(commands.Cog):
             if floor_price + relics_value >= float(price):
                 blur_link = f"https://blur.io/asset/{address}/{token_id}"
                 relics_data_str = "\n".join([f"{relic['relicsType'].capitalize()} Relic Count: {relic['count']}" for relic in relics_data])
-                message = f"@everyone\n**{attribute_rarity}** {token}: {token_id}\n{relics_data_str}\nFloor Price: {attribute_floorprice[0]:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {price:.4f} ETH**\n{blur_link}"
+                message = f"@everyone\n**{attribute_rarity}** {token}: {token_id}\n{relics_data_str}\nFloor Price: {floor_price} ETH\nRelics Value: {relics_value} ETH\n\n**Listing Price: {price} ETH**\nBlur Link: <{blur_link}>"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
