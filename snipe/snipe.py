@@ -35,7 +35,7 @@ class Snipe(commands.Cog):
 
     async def process_order(self, session, token, address, order):
         token_id = order['criteria']['data']['token']['tokenId']
-        price = round(float(order['price']['amount']['decimal']), 2)
+        price = order['price']['amount']['decimal']
         exchange = order['kind']
         if (token_id, price, exchange) in self.processed_orders:
             print(f"Skipping order for token ID {token_id}, price {price}, and exchange {exchange} as it's already processed.")
@@ -51,13 +51,13 @@ class Snipe(commands.Cog):
             url_relics = 'https://api-cp.pixelmon.ai/nft/get-relics-count'
             relics_data = await self.fetch_relics(session, url_relics, token, token_id)
             self.relics_log[token_id] = relics_data
-        relics_value =  round(sum(self.relic_values.get(relic.get('relicsType'), 0) * relic.get('count', 0) for relic in relics_data), 2)
+        relics_value = sum(self.relic_values.get(relic.get('relicsType'), 0) * relic.get('count', 0) for relic in relics_data)
         if attribute_floorprice and relics_value >= 0.15:
-            floor_price = round(float(attribute_floorprice[0]), 2)
+            floor_price = float(attribute_floorprice[0])
             if floor_price + relics_value >= float(price):
                 blur_link = f"https://blur.io/asset/{address}/{token_id}"
                 relics_data_str = "\n".join([f"{relic['relicsType'].capitalize()} Relic Count: {relic['count']}" for relic in relics_data])
-                message = f"@everyone\n**{attribute_rarity}**: {token_id}\n{relics_data_str}\nFloor Price: {floor_price} ETH\nRelics Value: {relics_value} ETH\n\n**Listing Price: {price} ETH**\n{blur_link}"
+                message = f"@everyone\n**{attribute_rarity}** Trainer: {token_id}\n{relics_data_str}\nFloor Price: {attribute_floorprice[0]:.4f} ETH\nRelics Value: {relics_value:.4f} ETH\n\n**Listing Price: {price:.4f} ETH**\n{blur_link}"
                 for guild in self.bot.guilds:
                     channels = await self.config.guild(guild).channels()
                     for channel_id in channels:
