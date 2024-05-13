@@ -35,7 +35,7 @@ class Snipe(commands.Cog):
 
     async def process_order(self, session, token, address, order):
         token_id = order['criteria']['data']['token']['tokenId']
-        price = order['price']['amount']['decimal']
+        price = round(float(order['price']['amount']['decimal']), 2)
         exchange = order['kind']
         if (token_id, price, exchange) in self.processed_orders:
             print(f"Skipping order for token ID {token_id}, price {price}, and exchange {exchange} as it's already processed.")
