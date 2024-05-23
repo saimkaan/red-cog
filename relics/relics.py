@@ -33,6 +33,14 @@ class Relics(commands.Cog):
     @relics.command()
     async def pixelmon(self, ctx, token_id: int):
         await self.fetch_and_print_relics_data(ctx, token_id, 'pixelmon')
+    
+    @relics.command()
+    async def t(self, ctx, token_id: int):
+        await self.fetch_and_print_relics_data(ctx, token_id, 'trainer')
+
+    @relics.command()
+    async def p(self, ctx, token_id: int):
+        await self.fetch_and_print_relics_data(ctx, token_id, 'pixelmon')
 
     async def fetch_and_print_relics_data(self, ctx, token_id, nft_type):
         relics_data = await self.fetch_relics_data(token_id, nft_type)
