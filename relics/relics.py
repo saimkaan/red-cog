@@ -50,8 +50,8 @@ class Relics(commands.Cog):
             relics_data_str = "\n".join([f"{relic['relicsType'].capitalize()} Relic Count: {relic['count']}" for relic in relics_data])
             floor_price = round(float(attribute_floorprice[0]), 2) if attribute_floorprice else 'N/A'
             message = (
-                f"**{attribute_rarity}** {nft_type.capitalize()}: {token_id}\n"
-                f"{relics_data_str}\n"
+                f"**{attribute_rarity}** {nft_type.capitalize()}: {token_id}\n\n"
+                f"{relics_data_str}\n\n"
                 f"Floor Price: {floor_price} ETH\n"
                 f"Relics Value: {relics_value} ETH\n\n"
                 f"OpenSea: <{opensea_link}>\n"
