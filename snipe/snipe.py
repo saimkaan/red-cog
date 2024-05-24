@@ -12,7 +12,7 @@ class Snipe(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.headers = {
             "accept": "*/*",
-            "x-api-key": "1d336873-3714-504d-ade9-e0017bc7f390"
+            "x-api-key": "60bf8680-7718-50eb-9340-39d85f05cf7d"
         }
         self.relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024, 'unRevealed': 0.0024}
         self.relics_log = {}
