@@ -14,7 +14,7 @@ class Snipe(commands.Cog):
             "accept": "*/*",
             "x-api-key": "60bf8680-7718-50eb-9340-39d85f05cf7d"
         }
-        self.relic_values = {'diamond': 0.15, 'gold': 0.045, 'silver': 0.018, 'bronze': 0.009, 'wood': 0.0024, 'unRevealed': 0.0024}
+        self.relic_values = {'diamond': 0.11, 'gold': 0.057, 'silver': 0.034, 'bronze': 0.012, 'wood': 0.011}
         self.relics_log = {}
         self.processed_orders = {}
         self.contract_address = {
@@ -52,7 +52,7 @@ class Snipe(commands.Cog):
             relics_data = await self.fetch_relics(session, url_relics, token, token_id)
             self.relics_log[token_id] = relics_data
         relics_value = round(sum(self.relic_values.get(relic.get('relicsType'), 0) * relic.get('count', 0) for relic in relics_data), 2)
-        if attribute_floorprice and relics_value >= 0.2:
+        if attribute_floorprice and relics_value >= 0.3:
             floor_price = round(float(attribute_floorprice[0]),2 )
             if floor_price + relics_value >= float(price):
                 blur_link = f"https://blur.io/asset/{address}/{token_id}"
