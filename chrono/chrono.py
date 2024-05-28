@@ -47,9 +47,9 @@ class Chrono(commands.Cog):
         if floorprice == 'Not available':
             print(f"Floor price not available for token ID {token_id}.")
             return
-        multiplier = 0.2
+        multiplier = 0.3
         if len(matching_traits) == 2:
-            multiplier = 0.2
+            multiplier = 0.5
         if price > float(floorprice) + multiplier:
             print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
             return
