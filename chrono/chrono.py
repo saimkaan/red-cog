@@ -18,7 +18,7 @@ class Chrono(commands.Cog):
         self.contract_address = {
             "chrono": "0x17ed38f5f519c6ed563be6486e629041bed3dfbc",
         }
-        self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound', 'Blessed', 'Chilling Gaze']
+        self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound']
         self.task = None
 
     async def fetch_data(self, session, url):
