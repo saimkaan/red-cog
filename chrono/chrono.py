@@ -18,7 +18,7 @@ class Chrono(commands.Cog):
         self.contract_address = {
             "chrono": "0x17ed38f5f519c6ed563be6486e629041bed3dfbc",
         }
-        self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound']
+        self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound', 'Blessed']
         self.task = None
 
     async def fetch_data(self, session, url):
@@ -47,7 +47,7 @@ class Chrono(commands.Cog):
         if floorprice == 'Not available':
             print(f"Floor price not available for token ID {token_id}.")
             return
-        multiplier = 0.1
+        multiplier = 0.2
         if len(matching_traits) == 2:
             multiplier = 0.2
         if price > float(floorprice) + multiplier:
@@ -56,7 +56,7 @@ class Chrono(commands.Cog):
         matched_traits_string = ', '.join(matching_traits)
         blur_link = f"https://blur.io/asset/{address}/{token_id}"
         opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-        chrono_link = f"https://blur.io/asset/{address}/{token_id}"
+        chrono_link = f"https://chronoforge.gg/adventurer/{token_id}"
         message = f"@everyone\n**{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
         for guild in self.bot.guilds:
             channels = await self.config.guild(guild).channels()
