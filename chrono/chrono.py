@@ -54,16 +54,23 @@ class Chrono(commands.Cog):
         floorprice_data = await self.fetch_data(session, url_floorprice)
         floorprice = floorprice_data.get('price', 'Not available')
         
-        if floorprice == 'Not available' or price > float(floorprice) + 0.1:
-            print(f"Price {price} exceeds floor price {floorprice} + 0.2 for token ID {token_id}.")
+        if floorprice == 'Not available':
+            print(f"Floor price not available for token ID {token_id}.")
+            return
+
+        # Set multiplier based on the number of matching traits
+        multiplier = 0.2
+        if len(matching_traits) == 2:
+            multiplier = 0.5
+
+        if price > float(floorprice) + multiplier:
+            print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
             return
 
         # Construct message with bold formatting for matching traits
-        bold_matching_traits = [f"**{trait}**" if trait in matching_traits else trait for trait in all_traits]
-        message_traits = ', '.join(bold_matching_traits)
         blur_link = f"https://blur.io/asset/{address}/{token_id}"
         opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-        message = f"@everyone\n{message_traits} {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
+        message = f"@everyone\n{matching_traits} {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
         
         # Send message to configured channels
         for guild in self.bot.guilds:
@@ -75,6 +82,7 @@ class Chrono(commands.Cog):
                     await channel.send(message, allowed_mentions=allowed_mentions)
                 else:
                     print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
+
 
     @commands.group()
     async def chrono(self, ctx):
