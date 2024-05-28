@@ -47,7 +47,7 @@ class Chrono(commands.Cog):
         if floorprice == 'Not available':
             print(f"Floor price not available for token ID {token_id}.")
             return
-        multiplier = 0.2
+        multiplier = 0.1
         if len(matching_traits) == 2:
             multiplier = 0.5
         if price > float(floorprice) + multiplier:
@@ -56,7 +56,8 @@ class Chrono(commands.Cog):
         matched_traits_string = ', '.join(matching_traits)
         blur_link = f"https://blur.io/asset/{address}/{token_id}"
         opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-        message = f"@everyone\n{matched_traits_string} {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
+        chrono_link = f"https://blur.io/asset/{address}/{token_id}"
+        message = f"@everyone\n**{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\Chrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
         for guild in self.bot.guilds:
             channels = await self.config.guild(guild).channels()
             for channel_id in channels:
