@@ -34,29 +34,36 @@ class Chrono(commands.Cog):
             return
         self.processed_orders[(token_id, price, exchange)] = True
         
-        # Fetch attributes and floor price
+        # Fetch attributes
         attribute_key = "Trait"
         url_attribute = f"https://api.reservoir.tools/collections/{address}/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
         attributes_data = await self.fetch_data(session, url_attribute)
         
-        token_traits = [attr['value'] for attr in attributes_data.get('attributes', []) if attr['value'] in self.attribute_traits]
+        # Extract all traits
+        all_traits = [attr['value'] for attr in attributes_data.get('attributes', [])]
 
-        if not token_traits:
+        # Filter matching traits
+        matching_traits = [trait for trait in all_traits if trait in self.attribute_traits]
+
+        if not matching_traits:
             print(f"No matching traits found for token ID {token_id}.")
             return
 
+        # Fetch floor price only if there are matching traits
         url_floorprice = f"https://api.reservoir.tools/oracle/collections/floor-ask/v6?collection={address}"
         floorprice_data = await self.fetch_data(session, url_floorprice)
         floorprice = floorprice_data.get('price', 'Not available')
         
-        if floorprice == 'Not available' or price > float(floorprice) + 0.5:
+        if floorprice == 'Not available' or price > float(floorprice) + 0.2:
             print(f"Price {price} exceeds floor price {floorprice} + 0.2 for token ID {token_id}.")
             return
 
-        # Construct message
+        # Construct message with bold formatting for matching traits
+        bold_matching_traits = [f"**{trait}**" if trait in matching_traits else trait for trait in all_traits]
+        message_traits = ', '.join(bold_matching_traits)
         blur_link = f"https://blur.io/asset/{address}/{token_id}"
         opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-        message = f"@everyone\n**{', '.join(token_traits)}** {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
+        message = f"@everyone\n{message_traits} {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
         
         # Send message to configured channels
         for guild in self.bot.guilds:
