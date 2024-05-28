@@ -18,7 +18,7 @@ class Chrono(commands.Cog):
         self.contract_address = {
             "chrono": "0x17ed38f5f519c6ed563be6486e629041bed3dfbc",
         }
-        self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound', 'Blessed', 'Chilling Gaze']
+        self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound']
         self.task = None
 
     async def fetch_data(self, session, url):
@@ -45,16 +45,26 @@ class Chrono(commands.Cog):
         # Filter matching traits
         matching_traits = [trait for trait in all_traits if trait in self.attribute_traits]
 
-        # Fetch floor price
+        if not matching_traits:
+            print(f"No matching traits found for token ID {token_id}.")
+            return
+
+        # Fetch floor price only if there are matching traits
         url_floorprice = f"https://api.reservoir.tools/oracle/collections/floor-ask/v6?collection={address}"
         floorprice_data = await self.fetch_data(session, url_floorprice)
         floorprice = floorprice_data.get('price', 'Not available')
-
-        # Determine the threshold based on the number of matching traits
-        threshold = 0.2 if len(matching_traits) == 1 else 0.5
         
-        if floorprice == 'Not available' or price > float(floorprice) + threshold:
-            print(f"Price {price} exceeds floor price {floorprice} + {threshold} for token ID {token_id}.")
+        if floorprice == 'Not available':
+            print(f"Floor price not available for token ID {token_id}.")
+            return
+
+        # Set multiplier based on the number of matching traits
+        multiplier = 0.2
+        if len(matching_traits) == 2:
+            multiplier = 0.5
+
+        if price > float(floorprice) + multiplier:
+            print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
             return
 
         # Construct message with bold formatting for matching traits
@@ -74,7 +84,6 @@ class Chrono(commands.Cog):
                     await channel.send(message, allowed_mentions=allowed_mentions)
                 else:
                     print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
-
 
 
     @commands.group()
