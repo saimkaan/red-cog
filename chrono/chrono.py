@@ -43,14 +43,14 @@ class Chrono(commands.Cog):
             return
         url_floorprice = f"https://api.reservoir.tools/oracle/collections/floor-ask/v6?collection={address}"
         floorprice_data = await self.fetch_data(session, url_floorprice)
-        floorprice = floorprice_data.get('price', 'Not available')
+        floorprice = round(floorprice_data.get('price', 'Not available'), 2)
         if floorprice == 'Not available':
             print(f"Floor price not available for token ID {token_id}.")
             return
-        multiplier = 0.3
+        multiplier = 0.1
         if len(matching_traits) == 2:
-            multiplier = 0.5
-        if price > float(floorprice) + multiplier:
+            multiplier = 0.2
+        if price >= float(floorprice) + multiplier:
             print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
             return
         matched_traits_string = ', '.join(matching_traits)
