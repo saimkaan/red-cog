@@ -33,46 +33,30 @@ class Chrono(commands.Cog):
             print(f"Skipping order for token ID {token_id}, price {price}, and exchange {exchange} as it's already processed.")
             return
         self.processed_orders[(token_id, price, exchange)] = True
-        
-        # Fetch attributes
         attribute_key = "Trait"
         url_attribute = f"https://api.reservoir.tools/collections/{address}/attributes/explore/v5?tokenId={token_id}&attributeKey={attribute_key}"
         attributes_data = await self.fetch_data(session, url_attribute)
-        
-        # Extract all traits
         all_traits = [attr['value'] for attr in attributes_data.get('attributes', [])]
-
-        # Filter matching traits
         matching_traits = [trait for trait in all_traits if trait in self.attribute_traits]
-
         if not matching_traits:
             print(f"No matching traits found for token ID {token_id}.")
             return
-
-        # Fetch floor price only if there are matching traits
         url_floorprice = f"https://api.reservoir.tools/oracle/collections/floor-ask/v6?collection={address}"
         floorprice_data = await self.fetch_data(session, url_floorprice)
         floorprice = floorprice_data.get('price', 'Not available')
-        
         if floorprice == 'Not available':
             print(f"Floor price not available for token ID {token_id}.")
             return
-
-        # Set multiplier based on the number of matching traits
         multiplier = 0.2
         if len(matching_traits) == 2:
             multiplier = 0.5
-
         if price > float(floorprice) + multiplier:
             print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
             return
-
-        # Construct message with bold formatting for matching traits
+        matched_traits_string = ', '.join(matching_traits)
         blur_link = f"https://blur.io/asset/{address}/{token_id}"
         opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-        message = f"@everyone\n{matching_traits} {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
-        
-        # Send message to configured channels
+        message = f"@everyone\n{matched_traits_string} {token}: {token_id}\n\n**Listing Price: {price} ETH**\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
         for guild in self.bot.guilds:
             channels = await self.config.guild(guild).channels()
             for channel_id in channels:
@@ -82,7 +66,6 @@ class Chrono(commands.Cog):
                     await channel.send(message, allowed_mentions=allowed_mentions)
                 else:
                     print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
-
 
     @commands.group()
     async def chrono(self, ctx):
