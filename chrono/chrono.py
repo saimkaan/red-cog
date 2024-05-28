@@ -54,7 +54,7 @@ class Chrono(commands.Cog):
         floorprice_data = await self.fetch_data(session, url_floorprice)
         floorprice = floorprice_data.get('price', 'Not available')
         
-        if floorprice == 'Not available' or price > float(floorprice) + 0.2:
+        if floorprice == 'Not available' or price > float(floorprice) + 0.1:
             print(f"Price {price} exceeds floor price {floorprice} + 0.2 for token ID {token_id}.")
             return
 
