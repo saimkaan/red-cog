@@ -45,10 +45,6 @@ class Chrono(commands.Cog):
         # Filter matching traits
         matching_traits = [trait for trait in all_traits if trait in self.attribute_traits]
 
-        if not matching_traits:
-            print(f"No matching traits found for token ID {token_id}.")
-            return
-
         # Fetch floor price
         url_floorprice = f"https://api.reservoir.tools/oracle/collections/floor-ask/v6?collection={address}"
         floorprice_data = await self.fetch_data(session, url_floorprice)
@@ -78,6 +74,7 @@ class Chrono(commands.Cog):
                     await channel.send(message, allowed_mentions=allowed_mentions)
                 else:
                     print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
+
 
 
     @commands.group()
