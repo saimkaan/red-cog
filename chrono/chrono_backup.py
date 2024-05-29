@@ -19,7 +19,6 @@ class Chrono(commands.Cog):
             "chrono": "0x17ed38f5f519c6ed563be6486e629041bed3dfbc",
         }
         self.attribute_traits = ['Second Sight', 'Paralyzing Aura', 'Unbreakable', 'Demonic Strength', 'Shadowborn', 'Flameborn', 'Iceborn', 'Etherbound']
-        self.attribute_traits2 = ['Lightning Reflexes', 'Casanova', 'Saintly', 'Taming Touch', 'Unwavering', 'Companion Orb']
         self.task = None
 
     async def fetch_data(self, session, url):
@@ -39,54 +38,35 @@ class Chrono(commands.Cog):
         attributes_data = await self.fetch_data(session, url_attribute)
         all_traits = [attr['value'] for attr in attributes_data.get('attributes', [])]
         matching_traits = [trait for trait in all_traits if trait in self.attribute_traits]
-        matching_traits2 = [trait for trait in all_traits if trait in self.attribute_traits2]
-
+        if not matching_traits:
+            print(f"No matching traits found for token ID {token_id}.")
+            return
         url_floorprice = f"https://api.reservoir.tools/oracle/collections/floor-ask/v6?collection={address}"
         floorprice_data = await self.fetch_data(session, url_floorprice)
         floorprice = round(floorprice_data.get('price', 'Not available'), 2)
         if floorprice == 'Not available':
             print(f"Floor price not available for token ID {token_id}.")
             return
-
-        if len(matching_traits2) == 2 and floorprice >= price:
-            matched_traits_string = ', '.join(matching_traits2)
-            blur_link = f"https://blur.io/asset/{address}/{token_id}"
-            opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-            chrono_link = f"https://chronoforge.gg/adventurer/{token_id}"
-            message = f"@everyone\n**{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
-            for guild in self.bot.guilds:
-                channels = await self.config.guild(guild).channels()
-                for channel_id in channels:
-                    channel = guild.get_channel(channel_id)
-                    if channel:
-                        allowed_mentions = discord.AllowedMentions(everyone=True)
-                        await channel.send(message, allowed_mentions=allowed_mentions)
-                    else:
-                        print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
-        elif matching_traits:
-            multiplier = 0.1
-            if len(matching_traits) == 2:
-                multiplier = 0.2
-            if price >= float(floorprice) + multiplier:
-                print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
-                return
-            matched_traits_string = ', '.join(matching_traits)
-            if matching_traits2:  # Append matching_traits2 if there are any
-                matched_traits_string += f" (also includes: {', '.join(matching_traits2)})"
-            blur_link = f"https://blur.io/asset/{address}/{token_id}"
-            opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
-            chrono_link = f"https://chronoforge.gg/adventurer/{token_id}"
-            message = f"@everyone\n**{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
-            for guild in self.bot.guilds:
-                channels = await self.config.guild(guild).channels()
-                for channel_id in channels:
-                    channel = guild.get_channel(channel_id)
-                    if channel:
-                        allowed_mentions = discord.AllowedMentions(everyone=True)
-                        await channel.send(message, allowed_mentions=allowed_mentions)
-                    else:
-                        print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
-
+        multiplier = 0.1
+        if len(matching_traits) == 2:
+            multiplier = 0.2
+        if price >= float(floorprice) + multiplier:
+            print(f"Price {price} exceeds floor price {floorprice} + {multiplier} for token ID {token_id}.")
+            return
+        matched_traits_string = ', '.join(matching_traits)
+        blur_link = f"https://blur.io/asset/{address}/{token_id}"
+        opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
+        chrono_link = f"https://chronoforge.gg/adventurer/{token_id}"
+        message = f"@everyone\n**{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
+        for guild in self.bot.guilds:
+            channels = await self.config.guild(guild).channels()
+            for channel_id in channels:
+                channel = guild.get_channel(channel_id)
+                if channel:
+                    allowed_mentions = discord.AllowedMentions(everyone=True)
+                    await channel.send(message, allowed_mentions=allowed_mentions)
+                else:
+                    print(f"Channel with ID {channel_id} not found in guild {guild.name}.")
 
     @commands.group()
     async def chrono(self, ctx):
