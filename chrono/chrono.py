@@ -53,7 +53,7 @@ class Chrono(commands.Cog):
             blur_link = f"https://blur.io/asset/{address}/{token_id}"
             opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
             chrono_link = f"https://chronoforge.gg/adventurer/{token_id}"
-            message = f"@everyone\nRare Traits: **{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
+            message = f"@everyone\nRare Traits: :blue_circle: **{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
             for guild in self.bot.guilds:
                 channels = await self.config.guild(guild).channels()
                 for channel_id in channels:
@@ -72,11 +72,11 @@ class Chrono(commands.Cog):
                 return
             matched_traits_string = ', '.join(matching_traits)
             if matching_traits2:  # Append matching_traits2 if there are any
-                matched_traits_string += f" (also includes: {', '.join(matching_traits2)})"
+                matched_traits_string += f" (also includes: :blue_circle: {', '.join(matching_traits2)})"
             blur_link = f"https://blur.io/asset/{address}/{token_id}"
             opensea_link = f"https://pro.opensea.io/nft/ethereum/{address}/{token_id}"
             chrono_link = f"https://chronoforge.gg/adventurer/{token_id}"
-            message = f"@everyone\nEpic Traits: **{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
+            message = f"@everyone\nEpic Traits: :purple_circle: **{matched_traits_string}**\n\n**Listing Price: {price} ETH**\n\nChrono: <{chrono_link}>\nOpenSea: <{opensea_link}>\nBlur: {blur_link}"
             for guild in self.bot.guilds:
                 channels = await self.config.guild(guild).channels()
                 for channel_id in channels:
