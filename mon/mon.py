@@ -45,7 +45,7 @@ class Mon(commands.Cog):
     async def get_current_block(self):
         try:
             # Replace with your Ethereum node URL or Infura project ID
-            w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/your_infura_project_id'))
+            w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/7d62829be3c249afa81cec1cb5681c89'))
             return w3.eth.block_number
         except Exception as e:
             logging.error(f"Error occurred while fetching current block number: {e}")
