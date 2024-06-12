@@ -22,9 +22,9 @@ class Mon(commands.Cog):
             total_rate_sum = data.get("totalRateSum", 0)
 
             message = (
-                f"Total Burned Sum: {total_burned_sum}\n"
-                f"Total Net Sum: {total_net_sum}\n"
-                f"Total Rate Sum: {total_rate_sum}"
+                f"Total Burned: {total_burned_sum}\n"
+                f"Current Points: {total_net_sum}\n"
+                f"Staked MON: {total_rate_sum}"
             )
             await ctx.send(message)
         else:
