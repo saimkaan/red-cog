@@ -1,6 +1,7 @@
 from redbot.core import commands
 import requests
 import logging
+from web3 import Web3
 
 class Mon(commands.Cog):
     def __init__(self, bot):
@@ -15,24 +16,33 @@ class Mon(commands.Cog):
     @mon.command()
     async def points(self, ctx, address: str):
         """Fetches and displays points data for a given Ethereum address."""
-        data = self.fetch_points_data(address)
+        to_block = await self.get_current_block()
+        data = self.fetch_points_data(address, to_block)
         if data:
             total_burned_sum = data.get("totalBurnedSum", 0)
             total_net_sum = data.get("totalNetSum", 0)
             total_rate_sum = data.get("totalRateSum", 0)
 
             message = (
-                f"Total Burned: {total_burned_sum}\n"
-                f"Current Points: {total_net_sum}\n"
-                f"Staked MON: {total_rate_sum}"
+                f"Total Burned Sum: {total_burned_sum}\n"
+                f"Total Net Sum: {total_net_sum}\n"
+                f"Total Rate Sum: {total_rate_sum}"
             )
             await ctx.send(message)
         else:
             await ctx.send("Failed to fetch data from Mon Protocol API.")
 
-    def fetch_points_data(self, address):
+    async def get_current_block(self):
         try:
-            to_block = 20078027  # You can adjust this block number as needed
+            # Replace with your Ethereum node URL or Infura project ID
+            w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/your_infura_project_id'))
+            return w3.eth.block_number
+        except Exception as e:
+            logging.error(f"Error occurred while fetching current block number: {e}")
+            return None
+
+    def fetch_points_data(self, address, to_block):
+        try:
             url = f"{self.url_points}{address}?toBlock={to_block}"
             headers = {
                 "accept": "*/*",
