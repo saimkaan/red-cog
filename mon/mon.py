@@ -16,21 +16,26 @@ class Mon(commands.Cog):
     @mon.command()
     async def points(self, ctx, address: str):
         """Fetches and displays points data for a given Ethereum address."""
-        to_block = await self.get_current_block()
-        data = self.fetch_points_data(address, to_block)
-        if data:
-            total_burned_sum = data.get("totalBurnedSum", 0)
-            total_net_sum = data.get("totalNetSum", 0)
-            total_rate_sum = data.get("totalRateSum", 0)
+        try:
+            to_block = await self.get_current_block()
+            if to_block is None:
+                await ctx.send("Failed to fetch current block number.")
+                return
 
-            message = (
-                f"Total Burned Sum: {total_burned_sum}\n"
-                f"Total Net Sum: {total_net_sum}\n"
-                f"Total Rate Sum: {total_rate_sum}"
-            )
-            await ctx.send(message)
-        else:
-            await ctx.send("Failed to fetch data from Mon Protocol API.")
+            data = self.fetch_points_data(address, to_block)
+            if data:
+                message = (
+                    f"Total Burned: {data.get('totalBurned', 0)}\n"
+                    f"Current Points: {data.get('netPoints', 0)}\n"
+                    f"Staked MON: {data.get('rate', 0)}\n"
+                    f"Multiplier: {data.get('multiplier', 0)}"
+                )
+                await ctx.send(message)
+            else:
+                await ctx.send("No data available for the provided address.")
+        except Exception as e:
+            logging.error(f"Error occurred while fetching points data: {e}")
+            await ctx.send("An error occurred while fetching data from Mon Protocol API.")
 
     async def get_current_block(self):
         try:
@@ -56,15 +61,7 @@ class Mon(commands.Cog):
             }
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                data = response.json()
-                total_burned_sum = data.get("totalBurned", 0)
-                total_net_sum = data.get("netPoints", 0)
-                total_rate_sum = data.get("rate", 0)
-                return {
-                    "totalBurnedSum": total_burned_sum,
-                    "totalNetSum": total_net_sum,
-                    "totalRateSum": total_rate_sum
-                }
+                return response.json()
             else:
                 logging.error(f"Failed to fetch data from Mon Protocol API. Status code: {response.status_code}")
         except Exception as e:
