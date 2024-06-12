@@ -24,11 +24,16 @@ class Mon(commands.Cog):
 
             data = self.fetch_points_data(address, to_block)
             if data:
+                total_burned_sum = data.get("totalBurned", 0)
+                total_net_sum = data.get("netPoints", 0)
+                total_rate_sum = data.get("rate", 0)
+                total_multiplier_sum = data.get("multiplier", 0)
+
                 message = (
-                    f"Total Burned: {data.get('totalBurned', 0)}\n"
-                    f"Current Points: {data.get('netPoints', 0)}\n"
-                    f"Staked MON: {data.get('rate', 0)}\n"
-                    f"Multiplier: {data.get('multiplier', 0)}"
+                    f"Total Burned: {total_burned_sum}\n"
+                    f"Current Points: {total_net_sum}\n"
+                    f"Staked MON: {total_rate_sum}\n"
+                    f"Multiplier: {total_multiplier_sum}"
                 )
                 await ctx.send(message)
             else:
@@ -61,9 +66,18 @@ class Mon(commands.Cog):
             }
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                return response.json()
+                data = response.json()
+                return {
+                    "totalBurned": data.get("totalBurned", 0),
+                    "netPoints": data.get("netPoints", 0),
+                    "rate": data.get("rate", 0),
+                    "multiplier": data.get("multiplier", 0)
+                }
             else:
                 logging.error(f"Failed to fetch data from Mon Protocol API. Status code: {response.status_code}")
         except Exception as e:
             logging.error(f"Error occurred while fetching data from Mon Protocol API: {e}")
         return None
+
+def setup(bot):
+    bot.add_cog(Mon(bot))
