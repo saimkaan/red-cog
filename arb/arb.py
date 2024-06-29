@@ -102,7 +102,7 @@ class Arb(commands.Cog):
         for i in range(len(rarities)):
             table_data.append([rarities[i], mon_locked_usd[i], mon_value_usd_list[i], discounts_usd[i], discounts_pct[i]])
 
-        output_table = tabulate(table_data, headers=["Rarity", "Mon Locked", "Mon instead of NFT", "Discount (USD)", "Discount (%)"])
+        output_table = tabulate(table_data, headers=["Rarity", "Mon Locked", "Mon Equivalent", "Discount (MON)", "Discount (%)"])
         await ctx.send(f"Contract: {contract_name} ({contract_address})\n```\n{output_table}\n```")
 
     @commands.group()
