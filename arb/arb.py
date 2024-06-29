@@ -111,9 +111,9 @@ class Arb(commands.Cog):
             await ctx.send_help(ctx.command)
 
     @arb.command()
-    async def trainer(self, ctx, token_id: int):
+    async def trainer(self, ctx: int):
         await self.fetch_and_print_data(ctx, 'trainer')
 
     @arb.command()
-    async def pixelmon(self, ctx, token_id: int):
+    async def pixelmon(self, ctx: int):
         await self.fetch_and_print_data(ctx, 'pixelmon')
