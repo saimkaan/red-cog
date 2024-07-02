@@ -21,7 +21,7 @@ class Arb(commands.Cog):
         }
         self.mon_locked_amounts_trainers = {
             "Golden": 130000,
-            "mythic": 130000,
+            "mythic": 27175,
             "Mythic": 27175,
             "Legendary": 5435,
             "Epic": 2898,
