@@ -38,75 +38,6 @@ class Arb(commands.Cog):
             "Legendary": 32610,
             "Mythical": 163054
         }
-        self.species_rarity_map = {
-            "Antonne": "Common",
-            "Arachneae": "Common",
-            "Bloopius": "Common",
-            "Boodecept": "Common",
-            "Bruizton": "Common",
-            "Bugglebug": "Common",
-            "Bullmore": "Common",
-            "Cheblammo": "Common",
-            "Cubixear": "Common",
-            "Drootle": "Common",
-            "Fowlian": "Common",
-            "Haptorid": "Common",
-            "Hazerduz": "Common",
-            "Bellowhound": "Common",
-            "Piu-2": "Common",
-            "Shelkjet": "Common",
-            "Spoutcrest": "Common",
-            "Tookem": "Common",
-            "Flowuff": "Common",
-            "Xanshadow": "Common",
-            "Brawlot": "Uncommon",
-            "Cactwodom": "Uncommon",
-            "Flickhorn": "Uncommon",
-            "Foxetacean": "Uncommon",
-            "Metascan": "Uncommon",
-            "Molebore": "Uncommon",
-            "Nethratine": "Uncommon",
-            "Sharpearl": "Uncommon",
-            "Uiop": "Uncommon",
-            "Lilamoth": "Uncommon",
-            "Sharmendu": "Uncommon",
-            "Sheedlax": "Uncommon",
-            "Wardenon": "Uncommon",
-            "Aquahond": "Rare",
-            "Apamon": "Rare",
-            "Fiveticles": "Rare",
-            "Goloidon": "Rare",
-            "Embercowl": "Rare",
-            "Hubb-L/C": "Rare",
-            "Inferknight": "Rare",
-            "Lunaful": "Rare",
-            "Octopodus": "Rare",
-            "Pinmeleon": "Rare",
-            "R7n3-B": "Rare",
-            "Rahvager": "Rare",
-            "Bergum": "Epic",
-            "Borgol": "Epic",
-            "Floratopsian": "Epic",
-            "Harrow": "Epic",
-            "Cephaqueen": "Epic",
-            "Krawarrior": "Epic",
-            "Marrohowl": "Epic",
-            "Mr.mask": "Epic",
-            "Purralycat": "Epic",
-            "Slythiss": "Epic",
-            "Repteg": "Legendary",
-            "Bengusi": "Legendary",
-            "Ardentrus": "Legendary",
-            "Grailshield": "Legendary",
-            "T.r.b.y.n": "Legendary",
-            "Primeonimbus": "Legendary",
-            "Serdrake": "Legendary",
-            "Xyvonna": "Legendary",
-            "Titanoth": "Mythical",
-            "Aonithan": "Mythical",
-            "Hariken": "Mythical",
-            "Ferrunos": "Mythical"
-        }
         self.mon_price_usd = self.get_crypto_price("MON")
         self.eth_price_usd = self.get_crypto_price("ETH")
 
@@ -133,39 +64,6 @@ class Arb(commands.Cog):
         data = response.json()
         return data["data"][symbol]["quote"]["USD"]["price"]
 
-    def fetch_e2_floor_prices(self):
-        url = "https://api.reservoir.tools/collections/0x32973908faee0bf825a343000fe412ebe56f802a/attributes/explore/v5?attributeKey=Species&limit=200"
-        headers = {
-            "accept": "*/*",
-            "x-api-key": self.reservoir_api_key
-        }
-        response = requests.get(url, headers=headers)
-        nft_data = response.json()
-
-        e2_lowest_prices = {
-            "Common": float('inf'),
-            "Uncommon": float('inf'),
-            "Rare": float('inf'),
-            "Epic": float('inf'),
-            "Legendary": float('inf'),
-            "Mythical": float('inf')
-        }
-
-        for attribute in nft_data['attributes']:
-            species = attribute['value']
-            rarity = self.species_rarity_map.get(species)
-
-            if rarity == 'Unknown' or rarity is None:
-                continue
-
-            floor_ask_prices = attribute['floorAskPrices']
-            if rarity in e2_lowest_prices:
-                min_price = min(floor_ask_prices)
-                if min_price < e2_lowest_prices[rarity]:
-                    e2_lowest_prices[rarity] = min_price
-
-        return e2_lowest_prices
-
     async def fetch_and_print_data(self, ctx, contract_name):
         contract_address = self.contract_addresses.get(contract_name)
         if not contract_address:
@@ -187,17 +85,13 @@ class Arb(commands.Cog):
             else {}
         )
 
-        if contract_name == "e2":
-            # Fetch lowest floorAskPrices from e2 API
-            e2_prices = self.fetch_e2_floor_prices()
-
         for attribute in nft_data['attributes']:
             rarity = attribute['value']
 
             if rarity == 'Unknown':
                 continue
 
-            floor_ask_price_eth = e2_prices.get(rarity, 0) if contract_name == "e2" else attribute['floorAskPrices'][0]
+            floor_ask_price_eth = attribute['floorAskPrices'][0]
             floor_ask_price_usd = floor_ask_price_eth * self.eth_price_usd
 
             if floor_ask_price_usd == 0.00:
@@ -214,29 +108,26 @@ class Arb(commands.Cog):
             discounts_usd.append(discount_usd)
             discounts_pct.append(discount_pct)
 
-        table_data = {
-            "Rarity": rarities,
-            "MON_locked ($)": mon_locked_usd,
-            "MON_bought ($)": mon_value_usd_list,
-            "Discount ($)": discounts_usd,
-            "Discount (%)": discounts_pct
-        }
+        table_data = []
+        for i in range(len(rarities)):
+            table_data.append([rarities[i], mon_locked_usd[i], mon_value_usd_list[i], discounts_usd[i], discounts_pct[i]])
 
-        table = tabulate(table_data, headers="keys", tablefmt="fancy_grid")
+        output_table = tabulate(table_data, headers=["Rarity", "Mon Locked", "Mon Equivalent", "Discount (MON)", "Discount (%)"])
+        await ctx.send(f"Contract: {contract_name} ({contract_address})\n```\n{output_table}\n```")
 
-        await ctx.send(f"```{table}```")
+    @commands.group()
+    async def arb(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send_help(ctx.command)
 
-    @commands.command()
-    async def pixelmon(self, ctx):
-        await self.fetch_and_print_data(ctx, "pixelmon")
+    @arb.command()
+    async def trainer(self, ctx: int):
+        await self.fetch_and_print_data(ctx, 'trainer')
 
-    @commands.command()
-    async def trainer(self, ctx):
-        await self.fetch_and_print_data(ctx, "trainer")
+    @arb.command()
+    async def pixelmon(self, ctx: int):
+        await self.fetch_and_print_data(ctx, 'pixelmon')
 
-    @commands.command()
-    async def e2(self, ctx):
-        await self.fetch_and_print_data(ctx, "e2")
-
-def setup(bot):
-    bot.add_cog(Arb(bot))
+    @arb.command()
+    async def e2(self, ctx: int):
+        await self.fetch_and_print_data(ctx, 'e2')
