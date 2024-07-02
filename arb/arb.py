@@ -118,8 +118,14 @@ class Arb(commands.Cog):
             return lowest_prices
 
         for species in species_data['attributes']:
+            if not isinstance(species, dict):
+                continue
+
             species_name = species.get('value', {}).get('Species', '')
             floor_ask_price = species.get('value', {}).get('FloorAskPrice', 0)
+
+            # Rest of your logic
+
 
             if species_name in self.commonSpecies:
                 lowest_prices['Common'] = min(lowest_prices['Common'], floor_ask_price)
